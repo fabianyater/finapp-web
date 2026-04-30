@@ -50,18 +50,6 @@ import { Link, useNavigate } from "react-router-dom";
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
-const BAR_COLORS = [
-  "#f97316",
-  "#3b82f6",
-  "#7c3aed",
-  "#f43f5e",
-  "#f59e0b",
-  "#14b8a6",
-  "#6366f1",
-  "#ec4899",
-  "#84cc16",
-  "#10b981",
-];
 
 const ICON_MAP: Record<string, string> = {
   "currency-dollar": "💰",
@@ -575,7 +563,7 @@ function TransferDetailModal({
   const isOut = tx.toAccountId != null;
   const fromName = isOut
     ? (accounts.find((a) => a.id === tx.accountId)?.name ?? tx.accountId)
-    : (accounts.find((a) => a.id === tx.toAccountId ?? "")?.name ?? "—");
+    : (accounts.find((a) => a.id === (tx.toAccountId ?? ""))?.name ?? "—");
   const toName = isOut
     ? (accounts.find((a) => a.id === tx.toAccountId)?.name ?? tx.toAccountId)
     : (accounts.find((a) => a.id === tx.accountId)?.name ?? tx.accountId);

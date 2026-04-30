@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Plus, Pencil, Trash2, Loader2, X, Power, RepeatIcon, CalendarClock } from 'lucide-react'
@@ -84,7 +84,7 @@ function RecurringSheet({
   })
 
   const { register, handleSubmit, watch, control, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: {
       accountId: item?.accountId ?? '',
       categoryId: item?.categoryId ?? '',

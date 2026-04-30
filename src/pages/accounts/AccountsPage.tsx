@@ -96,16 +96,12 @@ function resolveIcon(key?: string) {
   return KEY_TO_ICON[key] ?? key;
 }
 
-function typeLabel(type: string) {
-  return ACCOUNT_TYPES.find((t) => t.value === type)?.label ?? type;
-}
-
 // ── form schema ───────────────────────────────────────────────────────────────
 
 const schema = z.object({
   name: z.string().min(1, "El nombre es requerido").max(80),
   type: z.enum(["CASH", "BANK", "CREDIT_CARD"]),
-  initialBalance: z.number({ invalid_type_error: "Ingresa un monto" }),
+  initialBalance: z.number({ message: "Ingresa un monto" }),
   currency: z.string().min(1),
   icon: z.string(),
   color: z.string(),

@@ -39,10 +39,6 @@ const THEMES: { value: ThemeMode; label: string; icon: React.ElementType }[] = [
   { value: 'system', label: 'Sistema', icon: Monitor },
 ]
 
-const CATEGORY_TYPE_LABEL: Record<'EXPENSE' | 'INCOME', string> = {
-  EXPENSE: 'Gasto',
-  INCOME: 'Ingreso',
-}
 
 const ICON_MAP: Record<string, string> = {
   'currency-dollar': '💰', 'laptop': '💻', 'utensils': '🍽️', 'car': '🚗',
