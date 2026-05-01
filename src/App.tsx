@@ -15,6 +15,7 @@ import SettingsPage from "@/pages/settings/SettingsPage";
 import TagsPage from "@/pages/tags/TagsPage";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function App() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
+      <Analytics />
     </QueryClientProvider>
   );
 }
