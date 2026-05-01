@@ -363,6 +363,8 @@ function CategoryBars({
     ? { normal: 0.07, selected: 0.13 }
     : { normal: 0.28, selected: 0.38 };
 
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
   const maxAmount = Math.max(
     ...items.map((i) => {
       const b = budgets?.[i.categoryId];
@@ -377,7 +379,7 @@ function CategoryBars({
       className="flex items-end gap-3 overflow-x-auto scrollbar-hide"
       style={{ height: `${BAR_AREA_H}px` }}
     >
-      {items.map(({ categoryId, icon, total, color: rawColor }, i) => {
+      {items.map(({ categoryId, name, icon, total, color: rawColor }, i) => {
         const budget = budgets?.[categoryId];
         const catColor = rawColor
           ? rawColor.startsWith("#")
@@ -386,13 +388,16 @@ function CategoryBars({
           : null;
         const isSelected = categoryId === selectedId;
         const isDimmed = hasSelection && !isSelected;
+        const isHovered = hoveredId === categoryId;
         const hoverOn = (e: React.MouseEvent<HTMLDivElement>) => {
+          setHoveredId(categoryId);
           if (!isDimmed) {
             e.currentTarget.style.transform = "scaleX(1.06) scaleY(1.02)";
             e.currentTarget.style.filter = "brightness(1.08)";
           }
         };
         const hoverOff = (e: React.MouseEvent<HTMLDivElement>) => {
+          setHoveredId(null);
           e.currentTarget.style.transform = "";
           e.currentTarget.style.filter = "";
         };
@@ -429,6 +434,15 @@ function CategoryBars({
               onMouseEnter={hoverOn}
               onMouseLeave={hoverOff}
             >
+              {/* tooltip */}
+              {isHovered && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 z-30 pointer-events-none">
+                  <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl ring-1 ring-white/10">
+                    {name}
+                  </div>
+                  <div className="w-2 h-2 bg-gray-900/95 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 ring-1 ring-white/10" />
+                </div>
+              )}
               {/* under budget: dashed border only on the empty zone above the fill */}
               {!isOverBudget && (
                 <div
@@ -526,6 +540,15 @@ function CategoryBars({
             onMouseEnter={hoverOn}
             onMouseLeave={hoverOff}
           >
+            {/* tooltip */}
+            {isHovered && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 z-30 pointer-events-none">
+                <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl ring-1 ring-white/10">
+                  {name}
+                </div>
+                <div className="w-2 h-2 bg-gray-900/95 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 ring-1 ring-white/10" />
+              </div>
+            )}
             <span className="text-sm leading-none select-none">
               {resolveIcon(icon)}
             </span>
