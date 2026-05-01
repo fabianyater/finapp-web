@@ -1736,8 +1736,6 @@ export default function DashboardPage() {
     queryKey: [
       "transactions-all",
       selectedAccountId,
-      dateFrom,
-      dateTo,
       txSearch,
       txTypeFilter,
       selectedCategoryId,
@@ -1749,8 +1747,6 @@ export default function DashboardPage() {
         accountIds: selectedAccountId ? [selectedAccountId] : undefined,
         page: txPage,
         size: 15,
-        dateFrom,
-        dateTo,
         search: txSearch || undefined,
         types: txTypeFilter !== "ALL" ? [txTypeFilter] : undefined,
         categoryIds: selectedCategoryId ? [selectedCategoryId] : undefined,
