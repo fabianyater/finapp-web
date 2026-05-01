@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import './store/theme' // initializes theme before first render
 import App from './App.tsx'
+import { injectSpeedInsights } from '@vercel/speed-insights'
+
+injectSpeedInsights()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
