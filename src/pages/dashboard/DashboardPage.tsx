@@ -363,9 +363,6 @@ function CategoryBars({
     ? { normal: 0.07, selected: 0.13 }
     : { normal: 0.28, selected: 0.38 };
 
-  const [tooltip, setTooltip] = useState<{ name: string; x: number } | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
   const maxAmount = Math.max(
     ...items.map((i) => {
       const b = budgets?.[i.categoryId];
@@ -376,22 +373,10 @@ function CategoryBars({
   const hasSelection = selectedId !== null;
 
   return (
-    <div ref={wrapperRef} className="relative" style={{ paddingTop: "40px" }}>
-      {tooltip && (
-        <div
-          className="absolute top-0 z-30 pointer-events-none -translate-x-1/2"
-          style={{ left: `${tooltip.x}px` }}
-        >
-          <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl ring-1 ring-white/10">
-            {tooltip.name}
-          </div>
-          <div className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-2.5 h-2.5 bg-gray-900/95 rotate-45 ring-1 ring-white/10" />
-        </div>
-      )}
-      <div
-        className="flex items-end gap-3 overflow-x-auto scrollbar-hide"
-        style={{ height: `${BAR_AREA_H}px` }}
-      >
+    <div
+      className="flex items-end gap-3 overflow-x-auto scrollbar-hide"
+      style={{ height: `${BAR_AREA_H}px` }}
+    >
       {items.map(({ categoryId, name, icon, total, color: rawColor }, i) => {
         const budget = budgets?.[categoryId];
         const catColor = rawColor
@@ -402,17 +387,12 @@ function CategoryBars({
         const isSelected = categoryId === selectedId;
         const isDimmed = hasSelection && !isSelected;
         const hoverOn = (e: React.MouseEvent<HTMLDivElement>) => {
-          const barRect = e.currentTarget.getBoundingClientRect();
-          const wrapperRect = wrapperRef.current?.getBoundingClientRect();
-          const x = barRect.left - (wrapperRect?.left ?? 0) + barRect.width / 2;
-          setTooltip({ name, x });
           if (!isDimmed) {
             e.currentTarget.style.transform = "scaleX(1.06) scaleY(1.02)";
             e.currentTarget.style.filter = "brightness(1.08)";
           }
         };
         const hoverOff = (e: React.MouseEvent<HTMLDivElement>) => {
-          setTooltip(null);
           e.currentTarget.style.transform = "";
           e.currentTarget.style.filter = "";
         };
@@ -436,6 +416,7 @@ function CategoryBars({
           return (
             <div
               key={categoryId}
+              title={name}
               onClick={() => onSelect(categoryId)}
               className="bar-grow relative flex-shrink-0 cursor-pointer"
               style={{
@@ -528,6 +509,7 @@ function CategoryBars({
         return (
           <div
             key={categoryId}
+            title={name}
             onClick={() => onSelect(categoryId)}
             className="bar-grow relative flex-shrink-0 rounded-xl flex flex-col items-center justify-end pb-2 gap-0.5 cursor-pointer"
             style={{
@@ -558,7 +540,6 @@ function CategoryBars({
           </div>
         );
       })}
-      </div>
     </div>
   );
 }
