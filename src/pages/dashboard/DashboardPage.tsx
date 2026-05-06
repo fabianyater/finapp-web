@@ -414,6 +414,11 @@ function CategoryBars({
             ? "rgba(156,163,175,0.55)"
             : "rgba(156,163,175,0.3)";
 
+          const fillBg = hexToRgba(
+            baseColor,
+            isSelected ? fillOpacity.selected : fillOpacity.normal,
+          );
+
           return (
             <div
               key={categoryId}
@@ -431,62 +436,69 @@ function CategoryBars({
               onMouseEnter={hoverOn}
               onMouseLeave={hoverOff}
             >
-              {/* under budget: dashed border only on the empty zone above the fill */}
+              {/* ── BAJO PRESUPUESTO: dashed vacío arriba + sólido abajo ── */}
               {!isOverBudget && (
-                <div
-                  className="absolute inset-x-0 pointer-events-none"
-                  style={{
-                    bottom: `${fillH}px`,
-                    height: `${remainH > 0 ? remainH : trackH}px`,
-                    backgroundColor: "rgba(156,163,175,0.04)",
-                    borderTop: `2px dashed ${borderColor}`,
-                    borderLeft: `2px dashed ${borderColor}`,
-                    borderRight: `2px dashed ${borderColor}`,
-                    borderBottom:
-                      fillH <= 0 ? `2px dashed ${borderColor}` : "none",
-                    borderRadius: fillH <= 0 ? "14px" : "14px 14px 0 0",
-                  }}
-                />
+                <>
+                  {/* zona vacía del presupuesto (punteada, arriba) */}
+                  <div
+                    className="absolute inset-x-0 pointer-events-none"
+                    style={{
+                      bottom: `${fillH}px`,
+                      height: `${fillH > 0 ? remainH : trackH}px`,
+                      backgroundColor: "rgba(156,163,175,0.04)",
+                      borderTop: `2px dashed ${borderColor}`,
+                      borderLeft: `2px dashed ${borderColor}`,
+                      borderRight: `2px dashed ${borderColor}`,
+                      borderBottom:
+                        fillH <= 0 ? `2px dashed ${borderColor}` : "none",
+                      borderRadius: fillH <= 0 ? "14px" : "14px 14px 0 0",
+                    }}
+                  />
+                  {/* gasto real (sólido, abajo) */}
+                  {fillH > 0 && (
+                    <div
+                      className="absolute bottom-0 inset-x-0"
+                      style={{
+                        height: `${fillH}px`,
+                        backgroundColor: fillBg,
+                        borderRadius: remainH > 0 ? "0 0 14px 14px" : "14px",
+                        transition: "height 0.45s ease",
+                      }}
+                    />
+                  )}
+                </>
               )}
 
-              {/* over budget: dashed section only for overflow above budget limit */}
-              {isOverBudget && overflowH > 0 && (
-                <div
-                  className="absolute inset-x-0 pointer-events-none"
-                  style={{
-                    bottom: `${trackH}px`,
-                    height: `${overflowH}px`,
-                    borderTop: `2px dashed ${borderColor}`,
-                    borderLeft: `2px dashed ${borderColor}`,
-                    borderRight: `2px dashed ${borderColor}`,
-                    borderBottom: "none",
-                    borderRadius: "14px 14px 0 0",
-                    backgroundColor: hexToRgba(baseColor, 0.06),
-                  }}
-                />
+              {/* ── SOBRE PRESUPUESTO: sólido arriba (exceso) + dashed abajo (presupuesto) ── */}
+              {isOverBudget && (
+                <>
+                  {/* exceso sólido (arriba, sobre el presupuesto) */}
+                  {overflowH > 0 && (
+                    <div
+                      className="absolute inset-x-0"
+                      style={{
+                        bottom: `${trackH}px`,
+                        height: `${overflowH}px`,
+                        backgroundColor: fillBg,
+                        borderRadius: "14px 14px 0 0",
+                        transition: "height 0.45s ease",
+                      }}
+                    />
+                  )}
+                  {/* presupuesto (punteado, abajo) */}
+                  <div
+                    className="absolute bottom-0 inset-x-0 pointer-events-none"
+                    style={{
+                      height: `${trackH}px`,
+                      backgroundColor: fillBg,
+                      border: `2px dashed ${borderColor}`,
+                      borderRadius: overflowH > 0 ? "0 0 14px 14px" : "14px",
+                    }}
+                  />
+                </>
               )}
 
-              {/* solid fill — capped at trackH when over budget */}
-              {fillH > 0 && (
-                <div
-                  className="absolute bottom-0 inset-x-0"
-                  style={{
-                    height: `${isOverBudget ? trackH : fillH}px`,
-                    backgroundColor: hexToRgba(
-                      baseColor,
-                      isSelected ? fillOpacity.selected : fillOpacity.normal,
-                    ),
-                    borderRadius: isOverBudget
-                      ? "0 0 14px 14px"
-                      : remainH > 0
-                        ? "0 0 14px 14px"
-                        : "14px",
-                    transition: "height 0.45s ease, background-color 0.2s ease",
-                  }}
-                />
-              )}
-
-              {/* text pinned to bottom, always readable */}
+              {/* texto anclado abajo */}
               <div className="absolute bottom-2 inset-x-0 flex flex-col items-center gap-0.5 pointer-events-none z-10">
                 <span className="text-sm leading-none select-none">
                   {resolveIcon(icon)}
@@ -500,7 +512,9 @@ function CategoryBars({
                 <span
                   className="text-[9px] font-semibold tabular-nums leading-none"
                   style={{
-                    color: isOverBudget ? "#ef4444" : hexToRgba(baseColor, 0.75),
+                    color: isOverBudget
+                      ? "#ef4444"
+                      : hexToRgba(baseColor, 0.75),
                   }}
                 >
                   {`${Math.round(pct * 100)}%`}
