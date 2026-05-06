@@ -465,23 +465,31 @@ function CategoryBars({
               {/* ── SOBRE PRESUPUESTO: sólido arriba (exceso) + dashed abajo (presupuesto) ── */}
               {isOverBudget && (
                 <>
-                  {/* presupuesto (punteado, abajo) — se renderiza primero (detrás) */}
+                  {/* presupuesto (punteado, abajo) — wrapper recorta las esquinas superiores sin solapar */}
                   <div
                     className="absolute bottom-0 inset-x-0 pointer-events-none"
-                    style={{
-                      height: `${trackH}px`,
-                      backgroundColor: fillBg,
-                      border: `2px dashed ${borderColor}`,
-                      borderRadius: "14px",
-                    }}
-                  />
-                  {/* exceso sólido (arriba) — se renderiza encima, solapa 14px para tapar las esquinas del dash */}
+                    style={{ height: `${trackH}px`, overflow: "hidden" }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "-14px",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: fillBg,
+                        border: `2px dashed ${borderColor}`,
+                        borderRadius: "14px",
+                      }}
+                    />
+                  </div>
+                  {/* exceso sólido (arriba) — sin solapamiento */}
                   {overflowH > 0 && (
                     <div
                       className="absolute inset-x-0"
                       style={{
-                        bottom: `${trackH - 14}px`,
-                        height: `${overflowH + 14}px`,
+                        bottom: `${trackH}px`,
+                        height: `${overflowH}px`,
                         backgroundColor: fillBg,
                         borderRadius: "14px 14px 0 0",
                         transition: "height 0.45s ease",
