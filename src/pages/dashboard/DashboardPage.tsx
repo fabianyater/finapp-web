@@ -468,20 +468,7 @@ function CategoryBars({
               {/* ── SOBRE PRESUPUESTO: sólido arriba (exceso) + dashed abajo (presupuesto) ── */}
               {isOverBudget && (
                 <>
-                  {/* exceso sólido (arriba, sobre el presupuesto) */}
-                  {overflowH > 0 && (
-                    <div
-                      className="absolute inset-x-0"
-                      style={{
-                        bottom: `${trackH}px`,
-                        height: `${overflowH}px`,
-                        backgroundColor: fillBg,
-                        borderRadius: "14px 14px 0 0",
-                        transition: "height 0.45s ease",
-                      }}
-                    />
-                  )}
-                  {/* presupuesto (punteado, abajo) */}
+                  {/* presupuesto (punteado, abajo) — se renderiza primero (detrás) */}
                   <div
                     className="absolute bottom-0 inset-x-0 pointer-events-none"
                     style={{
@@ -491,6 +478,19 @@ function CategoryBars({
                       borderRadius: "14px",
                     }}
                   />
+                  {/* exceso sólido (arriba) — se renderiza encima, solapa 14px para tapar las esquinas del dash */}
+                  {overflowH > 0 && (
+                    <div
+                      className="absolute inset-x-0"
+                      style={{
+                        bottom: `${trackH - 14}px`,
+                        height: `${overflowH + 14}px`,
+                        backgroundColor: fillBg,
+                        borderRadius: "14px 14px 0 0",
+                        transition: "height 0.45s ease",
+                      }}
+                    />
+                  )}
                 </>
               )}
 
