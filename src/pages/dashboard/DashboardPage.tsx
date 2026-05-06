@@ -414,10 +414,7 @@ function CategoryBars({
             ? "rgba(156,163,175,0.55)"
             : "rgba(156,163,175,0.3)";
 
-          const fillBg = hexToRgba(
-            baseColor,
-            isSelected ? fillOpacity.selected : fillOpacity.normal,
-          );
+          const fillBg = hexToRgba(baseColor, fillOpacity.normal);
 
           return (
             <div
@@ -534,10 +531,7 @@ function CategoryBars({
             style={{
               width: "64px",
               height: `${barH}px`,
-              backgroundColor: hexToRgba(
-                color,
-                isSelected ? fillOpacity.selected : fillOpacity.normal,
-              ),
+              backgroundColor: hexToRgba(color, fillOpacity.normal),
               border: `2px solid ${isSelected ? "rgba(156,163,175,0.55)" : "rgba(156,163,175,0.3)"}`,
               animationDelay: `${i * 55}ms`,
               transition:
