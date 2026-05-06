@@ -457,7 +457,7 @@ function CategoryBars({
                       style={{
                         height: `${fillH}px`,
                         backgroundColor: fillBg,
-                        borderRadius: "14px",
+                        borderRadius: remainH > 0 ? "0 0 14px 14px" : "14px",
                         transition: "height 0.45s ease",
                       }}
                     />
@@ -476,7 +476,7 @@ function CategoryBars({
                         bottom: `${trackH}px`,
                         height: `${overflowH}px`,
                         backgroundColor: fillBg,
-                        borderRadius: "14px",
+                        borderRadius: "14px 14px 0 0",
                         transition: "height 0.45s ease",
                       }}
                     />
