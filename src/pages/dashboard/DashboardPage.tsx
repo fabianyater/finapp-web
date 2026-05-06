@@ -446,12 +446,8 @@ function CategoryBars({
                       bottom: `${fillH}px`,
                       height: `${fillH > 0 ? remainH : trackH}px`,
                       backgroundColor: "rgba(156,163,175,0.04)",
-                      borderTop: `2px dashed ${borderColor}`,
-                      borderLeft: `2px dashed ${borderColor}`,
-                      borderRight: `2px dashed ${borderColor}`,
-                      borderBottom:
-                        fillH <= 0 ? `2px dashed ${borderColor}` : "none",
-                      borderRadius: fillH <= 0 ? "14px" : "14px 14px 0 0",
+                      border: `2px dashed ${borderColor}`,
+                      borderRadius: "14px",
                     }}
                   />
                   {/* gasto real (sólido, abajo) */}
@@ -461,7 +457,7 @@ function CategoryBars({
                       style={{
                         height: `${fillH}px`,
                         backgroundColor: fillBg,
-                        borderRadius: remainH > 0 ? "0 0 14px 14px" : "14px",
+                        borderRadius: "14px",
                         transition: "height 0.45s ease",
                       }}
                     />
@@ -480,7 +476,7 @@ function CategoryBars({
                         bottom: `${trackH}px`,
                         height: `${overflowH}px`,
                         backgroundColor: fillBg,
-                        borderRadius: "14px 14px 0 0",
+                        borderRadius: "14px",
                         transition: "height 0.45s ease",
                       }}
                     />
@@ -492,7 +488,7 @@ function CategoryBars({
                       height: `${trackH}px`,
                       backgroundColor: fillBg,
                       border: `2px dashed ${borderColor}`,
-                      borderRadius: overflowH > 0 ? "0 0 14px 14px" : "14px",
+                      borderRadius: "14px",
                     }}
                   />
                 </>
