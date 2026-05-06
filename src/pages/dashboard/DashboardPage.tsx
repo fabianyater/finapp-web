@@ -360,8 +360,8 @@ function CategoryBars({
     (mode === "system" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches);
   const fillOpacity = isDark
-    ? { normal: 0.07, selected: 0.13 }
-    : { normal: 0.28, selected: 0.38 };
+    ? { normal: 0.18, selected: 0.28 }
+    : { normal: 0.55, selected: 0.72 };
 
   const maxAmount = Math.max(
     ...items.map((i) => {
@@ -493,14 +493,14 @@ function CategoryBars({
                 </span>
                 <span
                   className="text-sm font-bold tabular-nums leading-none"
-                  style={{ color: isOverBudget ? "#ef4444" : "#ffffff" }}
+                  style={{ color: isOverBudget ? "#ef4444" : baseColor }}
                 >
                   {fmtShort(total)}
                 </span>
                 <span
                   className="text-[9px] font-semibold tabular-nums leading-none"
                   style={{
-                    color: isOverBudget ? "#ef4444" : "rgba(107,114,128,0.8)",
+                    color: isOverBudget ? "#ef4444" : hexToRgba(baseColor, 0.75),
                   }}
                 >
                   {`${Math.round(pct * 100)}%`}
@@ -542,7 +542,7 @@ function CategoryBars({
             </span>
             <span
               className="text-sm font-bold tabular-nums leading-none"
-              style={{ color: "#ffffff" }}
+              style={{ color: color }}
             >
               {fmtShort(total)}
             </span>
