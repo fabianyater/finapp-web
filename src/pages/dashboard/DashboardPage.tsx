@@ -409,6 +409,7 @@ function CategoryBars({
           const fillH = Math.round((total / maxAmount) * MAX_BAR_H);
           const containerH = Math.max(trackH, fillH);
           const remainH = Math.max(0, trackH - fillH);
+          const overflowH = isOverBudget ? Math.max(0, fillH - trackH) : 0;
           const borderColor = isSelected
             ? "rgba(156,163,175,0.55)"
             : "rgba(156,163,175,0.3)";
@@ -448,28 +449,38 @@ function CategoryBars({
                 />
               )}
 
-              {/* over budget: dashed border wraps the entire bar */}
-              {isOverBudget && fillH > 0 && (
+              {/* over budget: dashed section only for overflow above budget limit */}
+              {isOverBudget && overflowH > 0 && (
                 <div
-                  className="absolute bottom-0 inset-x-0 rounded-2xl pointer-events-none"
+                  className="absolute inset-x-0 pointer-events-none"
                   style={{
-                    height: `${fillH}px`,
-                    border: `2px dashed ${borderColor}`,
+                    bottom: `${trackH}px`,
+                    height: `${overflowH}px`,
+                    borderTop: `2px dashed ${borderColor}`,
+                    borderLeft: `2px dashed ${borderColor}`,
+                    borderRight: `2px dashed ${borderColor}`,
+                    borderBottom: "none",
+                    borderRadius: "14px 14px 0 0",
+                    backgroundColor: hexToRgba(baseColor, 0.06),
                   }}
                 />
               )}
 
-              {/* solid fill — grows above track when over budget */}
+              {/* solid fill — capped at trackH when over budget */}
               {fillH > 0 && (
                 <div
                   className="absolute bottom-0 inset-x-0"
                   style={{
-                    height: `${fillH}px`,
+                    height: `${isOverBudget ? trackH : fillH}px`,
                     backgroundColor: hexToRgba(
                       baseColor,
                       isSelected ? fillOpacity.selected : fillOpacity.normal,
                     ),
-                    borderRadius: remainH > 0 ? "0 0 14px 14px" : "14px",
+                    borderRadius: isOverBudget
+                      ? "0 0 14px 14px"
+                      : remainH > 0
+                        ? "0 0 14px 14px"
+                        : "14px",
                     transition: "height 0.45s ease, background-color 0.2s ease",
                   }}
                 />
@@ -492,9 +503,7 @@ function CategoryBars({
                     color: isOverBudget ? "#ef4444" : "rgba(107,114,128,0.8)",
                   }}
                 >
-                  {isSelected && isOverBudget
-                    ? `+${fmtShort(total - budget.limitAmount)}`
-                    : `${Math.round(pct * 100)}%`}
+                  {`${Math.round(pct * 100)}%`}
                 </span>
               </div>
             </div>
