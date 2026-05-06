@@ -87,7 +87,7 @@ export default function CategoryBars({
               key={categoryId}
               title={name}
               onClick={() => onSelect(categoryId)}
-              className="bar-grow relative flex-shrink-0 cursor-pointer"
+              className="bar-grow relative shrink-0 cursor-pointer"
               style={{
                 width: "64px",
                 height: `${containerH}px`,
@@ -106,7 +106,7 @@ export default function CategoryBars({
                     style={{
                       bottom: `${fillH}px`,
                       height: `${fillH > 0 ? remainH : trackH}px`,
-                      backgroundColor: "rgba(156,163,175,0.04)",
+                      backgroundColor: "rgb(156,163,175)",
                       border: `2px dashed ${borderColor}`,
                       borderRadius: "14px",
                     }}
