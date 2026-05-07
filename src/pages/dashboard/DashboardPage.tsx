@@ -233,6 +233,7 @@ export default function DashboardPage() {
         txSearch={dashState.txSearch}
         txTypeFilter={dashState.txTypeFilter}
         selectedCategoryId={dashState.selectedCategoryId}
+        selectedTags={dashState.selectedTags}
         availableTags={dashData.availableTags}
         txPage={dashState.txPage}
         isExporting={dashState.isExporting}
