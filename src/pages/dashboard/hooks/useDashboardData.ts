@@ -59,7 +59,7 @@ export function useDashboardData({
     queryFn: () =>
       transactionsApi.list({
         accountIds: selectedAccountId ? [selectedAccountId] : undefined,
-        size: 500,
+        size: 100,
         dateFrom,
         dateTo,
         search: txSearch || undefined,
