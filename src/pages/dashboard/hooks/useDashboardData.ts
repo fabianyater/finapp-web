@@ -1,6 +1,6 @@
 import { accountsApi, type AccountDto } from "@/api/accounts";
 import { budgetsApi, type BudgetDto } from "@/api/budgets";
-import { categoriesApi } from "@/api/categories";
+import { categoriesApi, type CategorySummaryDto } from "@/api/categories";
 import { transactionsApi } from "@/api/transactions";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -47,45 +47,60 @@ export function useDashboardData({
   );
 
   const { data: txData, isLoading: txLoading } = useQuery({
-    queryKey: ["transactions", selectedAccountId, dateFrom, dateTo],
+    queryKey: [
+      "transactions",
+      selectedAccountId,
+      dateFrom,
+      dateTo,
+      txSearch,
+      txTypeFilter,
+      selectedTags,
+    ],
     queryFn: () =>
       transactionsApi.list({
         accountIds: selectedAccountId ? [selectedAccountId] : undefined,
-        size: 100,
+        size: 500,
         dateFrom,
         dateTo,
+        search: txSearch || undefined,
+        types: txTypeFilter !== "ALL" ? [txTypeFilter] : undefined,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
       }),
     enabled: !!selectedAccountId,
   });
   const transactions = txData?.data ?? [];
+
+  const summaryCats = useMemo((): CategorySummaryDto[] => {
+    const map = new Map<string, CategorySummaryDto>();
+    for (const tx of transactions) {
+      if (tx.type !== categoryView || !tx.categoryId) continue;
+      const existing = map.get(tx.categoryId);
+      if (existing) {
+        existing.total += tx.amount;
+      } else {
+        map.set(tx.categoryId, {
+          categoryId: tx.categoryId,
+          name: tx.categoryName ?? "",
+          color: tx.categoryColor ?? "#64748b",
+          icon: tx.categoryIcon ?? "tag",
+          total: tx.amount,
+        });
+      }
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }, [transactions, categoryView]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: categoriesApi.list,
   });
 
-  const { data: summaryCats = [], isLoading: summaryLoading } = useQuery({
-    queryKey: [
-      "category-summary",
-      selectedAccountId,
-      categoryView,
-      dateFrom,
-      dateTo,
-    ],
-    queryFn: () =>
-      categoriesApi.getSummary(
-        selectedAccountId!,
-        categoryView,
-        dateFrom,
-        dateTo,
-      ),
-    enabled: !!selectedAccountId,
-  });
-
   const { data: allTxData, isLoading: allTxLoading } = useQuery({
     queryKey: [
       "transactions-all",
       selectedAccountId,
+      dateFrom,
+      dateTo,
       txSearch,
       txTypeFilter,
       selectedCategoryId,
@@ -97,6 +112,8 @@ export function useDashboardData({
         accountIds: selectedAccountId ? [selectedAccountId] : undefined,
         page: txPage,
         size: 15,
+        dateFrom,
+        dateTo,
         search: txSearch || undefined,
         types: txTypeFilter !== "ALL" ? [txTypeFilter] : undefined,
         categoryIds: selectedCategoryId ? [selectedCategoryId] : undefined,
@@ -143,7 +160,7 @@ export function useDashboardData({
     txLoading,
     categories,
     summaryCats,
-    summaryLoading,
+    summaryLoading: txLoading,
     allTxData,
     allTxLoading,
     availableTags,

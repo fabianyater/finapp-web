@@ -19,7 +19,6 @@ interface TransactionSectionProps {
   txSearch: string;
   txTypeFilter: "ALL" | "EXPENSE" | "INCOME" | "TRANSFER";
   selectedCategoryId: string | null;
-  selectedTags: string[];
   availableTags: string[];
   txPage: number;
   isExporting: boolean;
@@ -42,7 +41,6 @@ interface TransactionSectionProps {
   onSetTxSearchInput: (v: string) => void;
   onSetTxTypeFilter: (v: "ALL" | "EXPENSE" | "INCOME" | "TRANSFER") => void;
   onSetSelectedCategoryId: (v: string | null) => void;
-  onSetSelectedTags: (v: string[]) => void;
   onSetTxPage: (v: number) => void;
   onExportCsv: () => void;
   onSelectTx: (tx: TransactionListDto) => void;
@@ -58,7 +56,6 @@ export default function TransactionSection({
   txSearch,
   txTypeFilter,
   selectedCategoryId,
-  selectedTags,
   availableTags,
   txPage,
   isExporting,
@@ -76,7 +73,6 @@ export default function TransactionSection({
   onSetTxSearchInput,
   onSetTxTypeFilter,
   onSetSelectedCategoryId,
-  onSetSelectedTags,
   onSetTxPage,
   onExportCsv,
   onSelectTx,
@@ -113,7 +109,6 @@ export default function TransactionSection({
     onSetTxTypeFilter("ALL");
     onSetTxPage(0);
     onSetSelectedCategoryId(null);
-    onSetSelectedTags([]);
   }
 
   return (
@@ -134,7 +129,6 @@ export default function TransactionSection({
           txSearchInput={txSearchInput}
           txTypeFilter={txTypeFilter}
           selectedCategoryId={selectedCategoryId}
-          selectedTags={selectedTags}
           availableTags={availableTags}
           categoryMap={categoryMap}
           onSetTxSearchInput={onSetTxSearchInput}
@@ -144,7 +138,6 @@ export default function TransactionSection({
             onSetShowAllTxns(false);
             onSetTxPage(0);
           }}
-          onSetSelectedTags={onSetSelectedTags}
         />
       )}
 

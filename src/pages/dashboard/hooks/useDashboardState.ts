@@ -32,7 +32,14 @@ export function useDashboardState({
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setTxSearch(txSearchInput), 350);
+    const t = setTimeout(() => {
+      const tags = [...txSearchInput.matchAll(/#(\w+)/g)].map((m) =>
+        m[1].toLowerCase(),
+      );
+      const text = txSearchInput.replace(/#\w+/g, "").trim();
+      setTxSearch(text);
+      setSelectedTags(tags);
+    }, 350);
     return () => clearTimeout(t);
   }, [txSearchInput]);
 
@@ -172,7 +179,6 @@ export function useDashboardState({
     selectedCategoryId,
     setSelectedCategoryId,
     selectedTags,
-    setSelectedTags,
     selectedTx,
     setSelectedTx,
     selectedTransferTx,

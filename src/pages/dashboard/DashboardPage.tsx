@@ -233,7 +233,6 @@ export default function DashboardPage() {
         txSearch={dashState.txSearch}
         txTypeFilter={dashState.txTypeFilter}
         selectedCategoryId={dashState.selectedCategoryId}
-        selectedTags={dashState.selectedTags}
         availableTags={dashData.availableTags}
         txPage={dashState.txPage}
         isExporting={dashState.isExporting}
@@ -251,7 +250,6 @@ export default function DashboardPage() {
         onSetTxSearchInput={dashState.setTxSearchInput}
         onSetTxTypeFilter={dashState.setTxTypeFilter}
         onSetSelectedCategoryId={dashState.setSelectedCategoryId}
-        onSetSelectedTags={dashState.setSelectedTags}
         onSetTxPage={dashState.setTxPage}
         onExportCsv={dashState.handleExportCsv}
         onSelectTx={dashState.setSelectedTx}
