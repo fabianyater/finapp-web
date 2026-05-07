@@ -72,7 +72,7 @@ export default function SummaryCards({
         <div className="flex items-center gap-1.5 mb-1.5">
           <Wallet size={12} className="text-gray-400 dark:text-gray-500" />
           <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
-            Neto
+            Balance
           </span>
         </div>
         <p
