@@ -19,6 +19,7 @@ interface TransactionSectionProps {
   txSearch: string;
   txTypeFilter: "ALL" | "EXPENSE" | "INCOME" | "TRANSFER";
   selectedCategoryId: string | null;
+  selectedTags: string[];
   availableTags: string[];
   txPage: number;
   isExporting: boolean;
@@ -56,6 +57,7 @@ export default function TransactionSection({
   txSearch,
   txTypeFilter,
   selectedCategoryId,
+  selectedTags,
   availableTags,
   txPage,
   isExporting,
