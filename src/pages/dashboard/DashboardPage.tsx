@@ -244,7 +244,6 @@ export default function DashboardPage() {
         allTxData={dashData.allTxData}
         recentTxs={recentTxs}
         accounts={dashData.accounts}
-        categories={dashData.categories}
         currency={currency}
         categoryMap={categoryMap}
         onSetShowDeleted={dashState.setShowDeleted}
