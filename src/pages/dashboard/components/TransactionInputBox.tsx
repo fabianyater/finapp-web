@@ -13,7 +13,7 @@ export default function TransactionInputBox({
 }: {
   input: string;
   isParsing: boolean;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   showTransferButton: boolean;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: () => void;

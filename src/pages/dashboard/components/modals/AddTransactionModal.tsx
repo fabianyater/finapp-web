@@ -10,7 +10,7 @@ import { MoneyInput } from "@/components/MoneyInput";
 import TagInput from "@/components/TagInput";
 import { cn } from "@/lib/utils";
 import { resolveColor } from "../../utils/colorUtils";
-import { Loader2, Sparkles, X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 

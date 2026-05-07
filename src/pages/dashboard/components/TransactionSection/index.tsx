@@ -12,7 +12,7 @@ import TransactionPagination from "./TransactionPagination";
 import TransactionSectionHeader from "./TransactionSectionHeader";
 
 interface TransactionSectionProps {
-  sectionRef: React.RefObject<HTMLDivElement>;
+  sectionRef: React.RefObject<HTMLDivElement | null>;
   showDeleted: boolean;
   showAllTxns: boolean;
   txSearchInput: string;
@@ -35,7 +35,6 @@ interface TransactionSectionProps {
     | undefined;
   recentTxs: TransactionListDto[];
   accounts: AccountDto[];
-  categories: CategoryDto[];
   currency: string;
   categoryMap: Map<string, CategoryDto>;
   onSetShowDeleted: (v: boolean) => void;
@@ -70,7 +69,6 @@ export default function TransactionSection({
   allTxData,
   recentTxs,
   accounts,
-  categories,
   currency,
   categoryMap,
   onSetShowDeleted,

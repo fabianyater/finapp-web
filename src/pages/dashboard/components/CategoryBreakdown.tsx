@@ -24,7 +24,7 @@ export default function CategoryBreakdown({
   summaryCats: CategorySummaryDto[];
   selectedCategoryId: string | null;
   budgetMap: Record<string, BudgetDto>;
-  txSectionRef: React.RefObject<HTMLDivElement>;
+  txSectionRef: React.RefObject<HTMLDivElement | null>;
   onSelectCategory: (id: string | null) => void;
   onSetShowAllTxns: (v: boolean) => void;
   onSetTxPage: (v: number) => void;
