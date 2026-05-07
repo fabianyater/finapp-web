@@ -66,20 +66,16 @@ export default function CategoryBars({
 
         if (budget) {
           const pct = total / budget.limitAmount;
-          const isOverBudget = total > budget.limitAmount;
           const baseColor = catColor ?? barColor;
-          const trackH = Math.max(
+          const budgetH = Math.max(
             MIN_BAR_H,
             Math.round((budget.limitAmount / maxAmount) * MAX_BAR_H),
           );
           const fillH = Math.round((total / maxAmount) * MAX_BAR_H);
-          const containerH = Math.max(trackH, fillH);
-          const remainH = Math.max(0, trackH - fillH);
-          const overflowH = isOverBudget ? Math.max(0, fillH - trackH) : 0;
+          const containerH = Math.max(budgetH, fillH);
           const borderColor = isSelected
             ? "rgba(156,163,175,0.55)"
             : "rgba(156,163,175,0.3)";
-
           const fillBg = hexToRgba(baseColor, fillOpacity.normal);
 
           return (
@@ -99,83 +95,43 @@ export default function CategoryBars({
               onMouseEnter={hoverOn}
               onMouseLeave={hoverOff}
             >
-              {!isOverBudget && (
-                <>
-                  <div
-                    className="absolute inset-x-0 pointer-events-none"
-                    style={{
-                      bottom: `${fillH}px`,
-                      height: `${fillH > 0 ? remainH : trackH}px`,
-                      backgroundColor: "rgb(156,163,175)",
-                      border: `2px dashed ${borderColor}`,
-                      borderRadius: "14px",
-                    }}
-                  />
-                  {fillH > 0 && (
-                    <div
-                      className="absolute bottom-0 inset-x-0"
-                      style={{
-                        height: `${fillH}px`,
-                        backgroundColor: fillBg,
-                        borderRadius: remainH > 0 ? "0 0 14px 14px" : "14px",
-                        transition: "height 0.45s ease",
-                      }}
-                    />
-                  )}
-                </>
+              {fillH > 0 && (
+                <div
+                  className="absolute bottom-0 inset-x-0"
+                  style={{
+                    height: `${fillH}px`,
+                    backgroundColor: fillBg,
+                    borderRadius: "14px",
+                    transition: "height 0.45s ease",
+                    zIndex: 1,
+                  }}
+                />
               )}
-
-              {isOverBudget && (
-                <>
-                  <div
-                    className="absolute bottom-0 inset-x-0 pointer-events-none"
-                    style={{ height: `${trackH}px`, overflow: "hidden" }}
-                  >
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "-14px",
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: fillBg,
-                        border: `2px dashed ${borderColor}`,
-                        borderRadius: "14px",
-                      }}
-                    />
-                  </div>
-                  {overflowH > 0 && (
-                    <div
-                      className="absolute inset-x-0"
-                      style={{
-                        bottom: `${trackH}px`,
-                        height: `${overflowH}px`,
-                        backgroundColor: fillBg,
-                        borderRadius: "14px 14px 0 0",
-                        transition: "height 0.45s ease",
-                      }}
-                    />
-                  )}
-                </>
-              )}
-
-              <div className="absolute bottom-2 inset-x-0 flex flex-col items-center gap-0.5 pointer-events-none z-10">
+              <div
+                className="absolute bottom-0 inset-x-0 pointer-events-none"
+                style={{
+                  height: `${budgetH}px`,
+                  border: `2px dashed ${borderColor}`,
+                  borderRadius: "14px",
+                  zIndex: 2,
+                }}
+              />
+              <div
+                className="absolute bottom-2 inset-x-0 flex flex-col items-center gap-0.5 pointer-events-none"
+                style={{ zIndex: 10 }}
+              >
                 <span className="text-sm leading-none select-none">
                   {resolveIcon(icon)}
                 </span>
                 <span
                   className="text-sm font-bold tabular-nums leading-none"
-                  style={{ color: isOverBudget ? "#ef4444" : baseColor }}
+                  style={{ color: baseColor }}
                 >
                   {fmtShort(total)}
                 </span>
                 <span
                   className="text-[9px] font-semibold tabular-nums leading-none"
-                  style={{
-                    color: isOverBudget
-                      ? "#ef4444"
-                      : hexToRgba(baseColor, 0.75),
-                  }}
+                  style={{ color: hexToRgba(baseColor, 0.75) }}
                 >
                   {`${Math.round(pct * 100)}%`}
                 </span>
