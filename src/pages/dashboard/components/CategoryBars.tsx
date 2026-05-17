@@ -73,7 +73,7 @@ export default function CategoryBars({
             MIN_BAR_H,
             Math.round((budget.limitAmount / maxAmount) * MAX_BAR_H),
           );
-          const fillH = rawBarH;
+          const fillH = total > budget.limitAmount ? Math.max(rawBarH, budgetH + 4) : rawBarH;
           const containerH = Math.max(budgetH, fillH);
           const borderColor = isSelected
             ? "rgba(156,163,175,0.55)"
