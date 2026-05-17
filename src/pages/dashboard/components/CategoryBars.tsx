@@ -52,6 +52,8 @@ export default function CategoryBars({
             : `#${rawColor}`
           : null;
         const isSelected = categoryId === selectedId;
+        const rawBarH = Math.round((total / maxAmount) * MAX_BAR_H);
+        const isLow = rawBarH < MIN_BAR_H;
         const isDimmed = hasSelection && !isSelected;
         const hoverOn = (e: React.MouseEvent<HTMLDivElement>) => {
           if (!isDimmed) {
@@ -71,7 +73,7 @@ export default function CategoryBars({
             MIN_BAR_H,
             Math.round((budget.limitAmount / maxAmount) * MAX_BAR_H),
           );
-          const fillH = Math.round((total / maxAmount) * MAX_BAR_H);
+          const fillH = rawBarH;
           const containerH = Math.max(budgetH, fillH);
           const borderColor = isSelected
             ? "rgba(156,163,175,0.55)"
@@ -117,7 +119,7 @@ export default function CategoryBars({
                 }}
               />
               <div
-                className="absolute bottom-2 inset-x-0 flex flex-col items-center gap-0.5 pointer-events-none"
+                className={`absolute bottom-2 inset-x-0 flex items-center pointer-events-none ${isLow ? "flex-row justify-center gap-1" : "flex-col gap-0.5"}`}
                 style={{ zIndex: 10 }}
               >
                 <span className="text-sm leading-none select-none">
@@ -129,18 +131,19 @@ export default function CategoryBars({
                 >
                   {fmtShort(total)}
                 </span>
-                <span
-                  className="text-[9px] font-semibold tabular-nums leading-none"
-                  style={{ color: hexToRgba(baseColor, 0.75) }}
-                >
-                  {`${Math.round(pct * 100)}%`}
-                </span>
+                {!isLow && (
+                  <span
+                    className="text-[9px] font-semibold tabular-nums leading-none"
+                    style={{ color: hexToRgba(baseColor, 0.75) }}
+                  >
+                    {`${Math.round(pct * 100)}%`}
+                  </span>
+                )}
               </div>
             </div>
           );
         }
 
-        const rawBarH = Math.round((total / maxAmount) * MAX_BAR_H);
         const barH = Math.max(MIN_BAR_H, rawBarH);
         const color = catColor ?? barColor;
 
@@ -149,7 +152,7 @@ export default function CategoryBars({
             key={categoryId}
             title={name}
             onClick={() => onSelect(categoryId)}
-            className="bar-grow relative flex-shrink-0 rounded-xl flex flex-col items-center justify-end pb-2 gap-0.5 cursor-pointer"
+            className={`bar-grow relative flex-shrink-0 rounded-xl flex cursor-pointer ${isLow ? "flex-row items-center justify-center gap-1" : "flex-col items-center justify-end pb-2 gap-0.5"}`}
             style={{
               width: "64px",
               height: `${barH}px`,
