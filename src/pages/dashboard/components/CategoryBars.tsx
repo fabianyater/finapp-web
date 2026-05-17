@@ -7,6 +7,7 @@ import { fmtShort } from "../utils/formatters";
 export const BAR_AREA_H = 320;
 const MAX_BAR_H = 300;
 const MIN_BAR_H = 52;
+const MIN_INLINE_H = 28;
 
 export default function CategoryBars({
   items,
@@ -70,7 +71,7 @@ export default function CategoryBars({
           const pct = total / budget.limitAmount;
           const baseColor = catColor ?? barColor;
           const budgetH = Math.max(
-            MIN_BAR_H,
+            isLow ? MIN_INLINE_H : MIN_BAR_H,
             Math.round((budget.limitAmount / maxAmount) * MAX_BAR_H),
           );
           const fillH = total > budget.limitAmount ? Math.max(rawBarH, budgetH + 4) : rawBarH;
@@ -144,7 +145,7 @@ export default function CategoryBars({
           );
         }
 
-        const barH = Math.max(MIN_BAR_H, rawBarH);
+        const barH = Math.max(isLow ? MIN_INLINE_H : MIN_BAR_H, rawBarH);
         const color = catColor ?? barColor;
 
         return (
