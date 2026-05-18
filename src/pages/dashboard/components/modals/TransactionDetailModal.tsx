@@ -35,7 +35,7 @@ export default function TransactionDetailModal({
   const [description, setDescription] = useState(tx.description);
   const [note, setNote] = useState(tx.note ?? "");
   const [tags, setTags] = useState<string[]>(tx.tags ?? []);
-  const [categoryId, setCategoryId] = useState(tx.categoryId);
+  const [categoryId, setCategoryId] = useState(tx.categoryId ?? "");
   const [date, setDate] = useState(tx.occurredOn.slice(0, 10));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
