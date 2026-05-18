@@ -2,7 +2,7 @@ import { accountsApi, type AccountDto } from "@/api/accounts";
 import { budgetsApi, type BudgetDto } from "@/api/budgets";
 import { categoriesApi, type CategorySummaryDto } from "@/api/categories";
 import { transactionsApi } from "@/api/transactions";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 interface DashboardDataParams {
@@ -10,12 +10,6 @@ interface DashboardDataParams {
   dateFrom: string;
   dateTo: string;
   categoryView: "EXPENSE" | "INCOME";
-  txSearch: string;
-  txTypeFilter: "ALL" | "EXPENSE" | "INCOME" | "TRANSFER";
-  selectedCategoryId: string | null;
-  selectedTags: string[];
-  txPage: number;
-  showAllTxns: boolean;
   showDeleted: boolean;
 }
 
@@ -24,12 +18,6 @@ export function useDashboardData({
   dateFrom,
   dateTo,
   categoryView,
-  txSearch,
-  txTypeFilter,
-  selectedCategoryId,
-  selectedTags,
-  txPage,
-  showAllTxns,
   showDeleted,
 }: DashboardDataParams) {
   const {
@@ -52,9 +40,6 @@ export function useDashboardData({
       selectedAccountId,
       dateFrom,
       dateTo,
-      txSearch,
-      txTypeFilter,
-      selectedTags,
     ],
     queryFn: () =>
       transactionsApi.list({
@@ -62,9 +47,6 @@ export function useDashboardData({
         size: 100,
         dateFrom,
         dateTo,
-        search: txSearch || undefined,
-        types: txTypeFilter !== "ALL" ? [txTypeFilter] : undefined,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
       }),
     enabled: !!selectedAccountId,
   });
@@ -93,40 +75,6 @@ export function useDashboardData({
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: categoriesApi.list,
-  });
-
-  const { data: allTxData, isLoading: allTxLoading } = useQuery({
-    queryKey: [
-      "transactions-all",
-      selectedAccountId,
-      dateFrom,
-      dateTo,
-      txSearch,
-      txTypeFilter,
-      selectedCategoryId,
-      selectedTags,
-      txPage,
-    ],
-    queryFn: () =>
-      transactionsApi.list({
-        accountIds: selectedAccountId ? [selectedAccountId] : undefined,
-        page: txPage,
-        size: 15,
-        dateFrom,
-        dateTo,
-        search: txSearch || undefined,
-        types: txTypeFilter !== "ALL" ? [txTypeFilter] : undefined,
-        categoryIds: selectedCategoryId ? [selectedCategoryId] : undefined,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
-      }),
-    enabled: !!selectedAccountId && showAllTxns,
-    placeholderData: keepPreviousData,
-  });
-
-  const { data: availableTags = [] } = useQuery({
-    queryKey: ["transaction-tags"],
-    queryFn: transactionsApi.listTags,
-    enabled: !!selectedAccountId && showAllTxns,
   });
 
   const { data: deletedTxs = [], isLoading: deletedLoading } = useQuery({
@@ -161,9 +109,6 @@ export function useDashboardData({
     categories,
     summaryCats,
     summaryLoading: txLoading,
-    allTxData,
-    allTxLoading,
-    availableTags,
     deletedTxs,
     deletedLoading,
     budgets,

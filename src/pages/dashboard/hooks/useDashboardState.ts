@@ -1,6 +1,6 @@
 import { transactionsApi, type DeletedTransactionDto, type TransactionListDto } from "@/api/transactions";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function useDashboardState({
   dateFrom,
@@ -16,40 +16,14 @@ export function useDashboardState({
   const [balanceVisible, setBalanceVisible] = useState(
     () => localStorage.getItem("balanceVisible") !== "false",
   );
-  const [showAllTxns, setShowAllTxns] = useState(false);
-  const [showDeleted, setShowDeleted] = useState(false);
-  const [txSearchInput, setTxSearchInput] = useState("");
-  const [txSearch, setTxSearch] = useState("");
-  const [txTypeFilter, setTxTypeFilter] = useState<
-    "ALL" | "EXPENSE" | "INCOME" | "TRANSFER"
-  >("ALL");
-  const [txPage, setTxPage] = useState(0);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [selectedTx, setSelectedTx] = useState<TransactionListDto | null>(null);
   const [selectedTransferTx, setSelectedTransferTx] = useState<TransactionListDto | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const tags = [...txSearchInput.matchAll(/#(\w+)/g)].map((m) =>
-        m[1].toLowerCase(),
-      );
-      const text = txSearchInput.replace(/#\w+/g, "").trim();
-      setTxSearch(text);
-      setSelectedTags(tags);
-    }, 350);
-    return () => clearTimeout(t);
-  }, [txSearchInput]);
-
-  useEffect(() => {
-    setTxPage(0);
-  }, [txSearch, txTypeFilter, selectedCategoryId, selectedAccountId, dateFrom, dateTo, selectedTags]);
-
-  useEffect(() => {
-    setSelectedCategoryId(null);
-  }, [selectedAccountId, dateFrom, dateTo]);
+  const [showTxFullModal, setShowTxFullModal] = useState(false);
+  const [txFullModalCategoryId, setTxFullModalCategoryId] = useState<string | null>(null);
 
   function toggleBalanceVisible() {
     setBalanceVisible((v) => {
@@ -57,6 +31,16 @@ export function useDashboardState({
       localStorage.setItem("balanceVisible", String(next));
       return next;
     });
+  }
+
+  function openTxFullModal(categoryId?: string | null) {
+    setTxFullModalCategoryId(categoryId ?? null);
+    setShowTxFullModal(true);
+  }
+
+  function closeTxFullModal() {
+    setShowTxFullModal(false);
+    setTxFullModalCategoryId(null);
   }
 
   async function handleExportCsv() {
@@ -67,9 +51,6 @@ export function useDashboardState({
         accountIds: [selectedAccountId],
         dateFrom,
         dateTo,
-        search: txSearch || undefined,
-        types: txTypeFilter !== "ALL" ? [txTypeFilter] : undefined,
-        categoryIds: selectedCategoryId ? [selectedCategoryId] : undefined,
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -96,9 +77,6 @@ export function useDashboardState({
       queryKey: ["transactions", selectedAccountId, dateFrom, dateTo],
     });
     queryClient.invalidateQueries({
-      queryKey: ["transactions-all", selectedAccountId],
-    });
-    queryClient.invalidateQueries({
       queryKey: ["category-summary", selectedAccountId],
     });
     queryClient.invalidateQueries({ queryKey: ["budgets"] });
@@ -108,9 +86,6 @@ export function useDashboardState({
     setSelectedTx(null);
     queryClient.invalidateQueries({
       queryKey: ["transactions", selectedAccountId, dateFrom, dateTo],
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["transactions-all", selectedAccountId],
     });
     queryClient.invalidateQueries({
       queryKey: ["category-summary", selectedAccountId],
@@ -125,9 +100,6 @@ export function useDashboardState({
       queryKey: ["transactions", selectedAccountId, dateFrom, dateTo],
     });
     queryClient.invalidateQueries({
-      queryKey: ["transactions-all", selectedAccountId],
-    });
-    queryClient.invalidateQueries({
       queryKey: ["category-summary", selectedAccountId],
     });
   }
@@ -139,9 +111,6 @@ export function useDashboardState({
     });
     queryClient.invalidateQueries({
       queryKey: ["transactions", selectedAccountId, dateFrom, dateTo],
-    });
-    queryClient.invalidateQueries({
-      queryKey: ["transactions-all", selectedAccountId],
     });
     queryClient.invalidateQueries({
       queryKey: ["category-summary", selectedAccountId],
@@ -165,20 +134,10 @@ export function useDashboardState({
     setCategoryView,
     balanceVisible,
     toggleBalanceVisible,
-    showAllTxns,
-    setShowAllTxns,
     showDeleted,
     setShowDeleted,
-    txSearchInput,
-    setTxSearchInput,
-    txSearch,
-    txTypeFilter,
-    setTxTypeFilter,
-    txPage,
-    setTxPage,
     selectedCategoryId,
     setSelectedCategoryId,
-    selectedTags,
     selectedTx,
     setSelectedTx,
     selectedTransferTx,
@@ -187,6 +146,10 @@ export function useDashboardState({
     setShowTransfer,
     isExporting,
     handleExportCsv,
+    showTxFullModal,
+    txFullModalCategoryId,
+    openTxFullModal,
+    closeTxFullModal,
     handleTransferSuccess,
     handleTxDeleted,
     handleTxUpdated,
