@@ -2,8 +2,8 @@ import { useAuthStore } from "@/store/auth";
 import { Wallet } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AccountSelector from "./components/AccountSelector";
 import CategoryBreakdown from "./components/CategoryBreakdown";
+import CreateActionMenu from "./components/CreateActionMenu";
 import DashboardTopBar from "./components/DashboardTopBar";
 import MonthSelector from "./components/MonthSelector";
 import AddTransactionModal from "./components/modals/AddTransactionModal";
@@ -11,13 +11,11 @@ import TransactionDetailModal from "./components/modals/TransactionDetailModal";
 import TransferDetailModal from "./components/modals/TransferDetailModal";
 import TransferModal from "./components/modals/TransferModal";
 import SummaryCards from "./components/SummaryCards";
-import TransactionInputBox from "./components/TransactionInputBox";
 import TotalBalanceDisplay from "./components/TotalBalanceDisplay";
 import TransactionSection from "./components/TransactionSection";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useDashboardState } from "./hooks/useDashboardState";
 import { useMonthNavigation } from "./hooks/useMonthNavigation";
-import { useTransactionInput } from "./hooks/useTransactionInput";
 export default function DashboardPage() {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
@@ -27,7 +25,6 @@ export default function DashboardPage() {
     dateFrom: monthNav.dateFrom,
     dateTo: monthNav.dateTo,
   });
-  const txInput = useTransactionInput(dashState.selectedAccountId);
   const dashData = useDashboardData({
     selectedAccountId: dashState.selectedAccountId,
     dateFrom: monthNav.dateFrom,
@@ -92,10 +89,7 @@ export default function DashboardPage() {
   }
 
   function handleSuccess() {
-    txInput.setShowModal(false);
-    txInput.setParsedData(null);
-    txInput.setInput("");
-    if (txInput.textareaRef.current) txInput.textareaRef.current.style.height = "auto";
+    dashState.setShowTransaction(false);
     dashState.invalidateAfterTransaction();
   }
 
@@ -159,7 +153,11 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
-      <DashboardTopBar />
+      <DashboardTopBar
+        accounts={dashData.accounts}
+        selectedAccountId={dashState.selectedAccountId}
+        onSelectAccount={dashState.setSelectedAccountId}
+      />
 
       {includedAccounts.length > 0 && (
         <TotalBalanceDisplay
@@ -170,24 +168,6 @@ export default function DashboardPage() {
           onToggleVisible={dashState.toggleBalanceVisible}
         />
       )}
-
-      {dashData.accounts.length > 0 && (
-        <AccountSelector
-          accounts={dashData.accounts}
-          selectedAccountId={dashState.selectedAccountId}
-          onSelect={dashState.setSelectedAccountId}
-        />
-      )}
-
-      <TransactionInputBox
-        input={txInput.input}
-        isParsing={txInput.isParsing}
-        textareaRef={txInput.textareaRef}
-        showTransferButton={dashData.accounts.length >= 2}
-        onChange={txInput.handleInput}
-        onSubmit={txInput.handleSubmitInput}
-        onTransfer={() => dashState.setShowTransfer(true)}
-      />
 
       <MonthSelector
         year={monthNav.selYear}
@@ -258,15 +238,20 @@ export default function DashboardPage() {
         onRestore={dashState.handleRestore}
       />
 
-      {txInput.showModal && dashState.selectedAccountId && (
+      <CreateActionMenu
+        canTransfer={dashData.accounts.length >= 2}
+        onTransaction={() => dashState.setShowTransaction(true)}
+        onTransfer={() => dashState.setShowTransfer(true)}
+      />
+
+      {dashState.showTransaction && dashState.selectedAccountId && (
         <AddTransactionModal
           accountId={dashState.selectedAccountId}
           categories={dashData.categories}
-          initialDescription={txInput.input}
+          initialDescription=""
           currency={currency}
-          onClose={() => { txInput.setShowModal(false); txInput.setParsedData(null); }}
+          onClose={() => dashState.setShowTransaction(false)}
           onSuccess={handleSuccess}
-          aiParsed={txInput.parsedData}
         />
       )}
 

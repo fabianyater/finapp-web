@@ -28,6 +28,7 @@ export function useDashboardState({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedTx, setSelectedTx] = useState<TransactionListDto | null>(null);
   const [selectedTransferTx, setSelectedTransferTx] = useState<TransactionListDto | null>(null);
+  const [showTransaction, setShowTransaction] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -183,6 +184,8 @@ export function useDashboardState({
     setSelectedTx,
     selectedTransferTx,
     setSelectedTransferTx,
+    showTransaction,
+    setShowTransaction,
     showTransfer,
     setShowTransfer,
     isExporting,

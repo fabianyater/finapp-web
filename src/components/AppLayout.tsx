@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { usersApi } from '@/api/users'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
+import BottomNav from './BottomNav'
 
 export default function AppLayout() {
   const { setMode } = useThemeStore()
@@ -16,9 +17,10 @@ export default function AppLayout() {
 
   return (
     <div className="flex flex-col h-screen bg-[#FAFAF8] dark:bg-[#111110]">
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pb-24">
         <Outlet />
       </main>
+      <BottomNav />
     </div>
   )
 }
