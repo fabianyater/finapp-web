@@ -68,26 +68,23 @@ export default function CategoryBars({
         };
 
         if (budget) {
-          const pct = budget.spentAmount / budget.limitAmount;
+          const pct = total / budget.limitAmount;
           const baseColor = catColor ?? barColor;
           const budgetH = Math.max(
             isLow ? MIN_INLINE_H : MIN_BAR_H,
             Math.round((budget.limitAmount / maxAmount) * MAX_BAR_H),
           );
-          const fillH = Math.max(isLow ? MIN_INLINE_H : MIN_BAR_H, rawBarH);
+          const fillH = total > budget.limitAmount ? Math.max(rawBarH, budgetH + 4) : rawBarH;
           const containerH = Math.max(budgetH, fillH);
-          const isOverBudget = pct > 1;
-          const borderColor = isOverBudget
-            ? "rgba(239,68,68,0.7)"
-            : isSelected
-              ? "rgba(156,163,175,0.55)"
-              : "rgba(156,163,175,0.3)";
+          const borderColor = isSelected
+            ? "rgba(156,163,175,0.55)"
+            : "rgba(156,163,175,0.3)";
           const fillBg = hexToRgba(baseColor, fillOpacity.normal);
 
           return (
             <div
               key={categoryId}
-              title={`${name}: ${fmtShort(total)} en esta cuenta · ${fmtShort(budget.spentAmount)} de ${fmtShort(budget.limitAmount)} global`}
+              title={name}
               onClick={() => onSelect(categoryId)}
               className="bar-grow relative shrink-0 cursor-pointer"
               style={{
@@ -122,16 +119,6 @@ export default function CategoryBars({
                   zIndex: 2,
                 }}
               />
-              {isOverBudget && (
-                <div
-                  className="absolute inset-x-1 pointer-events-none rounded-full bg-red-400"
-                  style={{
-                    bottom: `${Math.max(budgetH - 2, 0)}px`,
-                    height: "4px",
-                    zIndex: 4,
-                  }}
-                />
-              )}
               <div
                 className={`absolute bottom-2 inset-x-0 flex items-center pointer-events-none ${isLow ? "flex-row justify-center gap-1" : "flex-col gap-0.5"}`}
                 style={{ zIndex: 10 }}
@@ -148,9 +135,9 @@ export default function CategoryBars({
                 {!isLow && (
                   <span
                     className="text-[9px] font-semibold tabular-nums leading-none"
-                    style={{ color: isOverBudget ? "#ef4444" : hexToRgba(baseColor, 0.75) }}
+                    style={{ color: hexToRgba(baseColor, 0.75) }}
                   >
-                    {`${Math.round(pct * 100)}% global`}
+                    {`${Math.round(pct * 100)}%`}
                   </span>
                 )}
               </div>
