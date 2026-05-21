@@ -3,6 +3,22 @@
 /* class-based dark mode via data-theme attribute on <html> */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+[data-theme="light"] {
+  --color-gray-50: #f3f6f1;
+  --color-gray-100: #e1e8df;
+  --color-gray-200: #ccd7ca;
+  --color-gray-300: #aebdac;
+  --color-emerald-50: #eaf7ef;
+  --color-emerald-100: #cbeed8;
+  --color-emerald-200: #a2dfb8;
+  --color-emerald-300: #74c993;
+  --color-emerald-400: #43ae6d;
+  --color-emerald-500: #208c53;
+  --color-emerald-600: #166f40;
+  --color-emerald-700: #105a34;
+  --color-emerald-800: #0d472a;
+}
+
 @utility scrollbar-hide {
   scrollbar-width: none;
   &::-webkit-scrollbar {

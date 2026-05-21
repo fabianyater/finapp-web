@@ -16,7 +16,7 @@ export default function AppLayout() {
   }, [profile, setMode])
 
   return (
-    <div className="flex flex-col h-screen bg-[#FAFAF8] dark:bg-[#111110]">
+    <div className="flex flex-col h-screen bg-[#f3f6f1] dark:bg-[#111110]">
       <main className="flex-1 overflow-auto pb-24">
         <Outlet />
       </main>

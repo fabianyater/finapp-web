@@ -15,10 +15,10 @@ export default function BottomNav() {
 
   return (
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-      <div className="pointer-events-auto relative mx-auto grid max-w-md grid-cols-4 gap-1 rounded-2xl border border-gray-200/80 bg-white/95 p-1.5 shadow-[0_-10px_40px_rgba(17,24,39,0.12)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95">
+      <div className="pointer-events-auto relative mx-auto grid max-w-md grid-cols-4 gap-1 rounded-2xl border border-gray-200 bg-white/95 p-1.5 shadow-[0_-10px_40px_rgba(16,40,27,0.14)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95">
         <span
           aria-hidden
-          className="absolute bottom-1.5 left-1.5 top-1.5 w-[calc((100%-1.5rem)/4)] rounded-xl bg-[#1a1a18] shadow-sm transition-transform duration-300 ease-out dark:bg-white"
+          className="absolute bottom-1.5 left-1.5 top-1.5 w-[calc((100%-1.5rem)/4)] rounded-xl bg-emerald-700 shadow-sm transition-transform duration-300 ease-out dark:bg-white"
           style={{ transform: `translateX(calc(${activeIndex} * (100% + 0.25rem)))` }}
         />
         {items.map(({ to, label, icon: Icon }) => (

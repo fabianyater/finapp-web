@@ -156,7 +156,7 @@ export default function SubscriptionsPage() {
   const nextSubscription = [...active].sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))[0]
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110]">
+    <div className="min-h-screen bg-[#f3f6f1] dark:bg-[#111110]">
       <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
         <div className="flex items-center justify-between mb-5">
           <PageHeader title="Suscripciones" back={false} className="flex items-center gap-2" />

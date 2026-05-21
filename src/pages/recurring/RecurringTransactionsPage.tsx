@@ -377,7 +377,7 @@ export default function RecurringTransactionsPage() {
   const inactive = items.filter((i) => !i.active)
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110]">
+    <div className="min-h-screen bg-[#f3f6f1] dark:bg-[#111110]">
       <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
         <div className="flex items-center justify-between mb-6">
           <PageHeader title="Recurrentes" back={false} className="flex items-center gap-2" />

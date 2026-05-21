@@ -49,7 +49,7 @@ export default function CreateActionMenu({
         <button
           aria-label={open ? 'Cerrar acciones' : 'Nueva operacion'}
           onClick={() => setOpen((value) => !value)}
-          className="group flex h-11 items-center gap-2 rounded-full border border-[#1a1a18] bg-[#1a1a18] px-3.5 text-white shadow-[0_14px_36px_rgba(17,24,39,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.28)] dark:border-white dark:bg-white dark:text-[#1a1a18]"
+          className="group flex h-11 items-center gap-2 rounded-full border border-emerald-800 bg-emerald-700 px-3.5 text-white shadow-[0_14px_36px_rgba(16,90,52,0.28)] transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_18px_42px_rgba(16,90,52,0.32)] dark:border-white dark:bg-white dark:text-[#1a1a18]"
         >
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 dark:bg-black/10">
             {open ? <X size={15} /> : <Plus size={16} strokeWidth={2.5} />}
