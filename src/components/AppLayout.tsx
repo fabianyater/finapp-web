@@ -10,7 +10,7 @@ export default function AppLayout() {
   const { data: profile } = useQuery({ queryKey: ['user', 'me'], queryFn: usersApi.getMe })
 
   useEffect(() => {
-    if (profile?.preferences?.theme) {
+    if (profile?.preferences?.theme && !localStorage.getItem('theme')) {
       setMode(profile.preferences.theme as ThemeMode)
     }
   }, [profile, setMode])
