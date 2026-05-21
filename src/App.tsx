@@ -3,8 +3,10 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/Toaster";
 import { queryClient } from "@/lib/queryClient";
 import AccountsPage from "@/pages/accounts/AccountsPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import BudgetsPage from "@/pages/budgets/BudgetsPage";
 import CategoriesPage from "@/pages/categories/CategoriesPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
@@ -26,6 +28,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/onboarding" element={<OnboardingPage />} />

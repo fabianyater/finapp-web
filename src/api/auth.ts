@@ -1,4 +1,10 @@
-import type { LoginRequest, LoginResponse, CreateUserRequest } from '@/types'
+import type {
+  LoginRequest,
+  LoginResponse,
+  CreateUserRequest,
+  RequestPasswordResetRequest,
+  ResetPasswordRequest,
+} from '@/types'
 import { apiClient } from './client'
 
 export const authApi = {
@@ -10,4 +16,10 @@ export const authApi = {
 
   refresh: (refreshToken: string) =>
     apiClient.post<LoginResponse>('/auth/refresh', { refreshToken }).then((r) => r.data),
+
+  requestPasswordReset: (data: RequestPasswordResetRequest) =>
+    apiClient.post('/auth/password-reset/request', data).then((r) => r.data),
+
+  resetPassword: (data: ResetPasswordRequest) =>
+    apiClient.post('/auth/password-reset', data).then((r) => r.data),
 }

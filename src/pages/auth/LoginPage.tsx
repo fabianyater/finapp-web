@@ -173,12 +173,12 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   Contraseña
                 </label>
-                <button
-                  type="button"
+                <Link
+                  to="/forgot-password"
                   className="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition-colors"
                 >
                   ¿Olvidaste tu contraseña?
-                </button>
+                </Link>
               </div>
               <div className="relative">
                 <input

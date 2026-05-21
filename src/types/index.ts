@@ -11,6 +11,15 @@ export interface LoginResponse {
   email: string
 }
 
+export interface RequestPasswordResetRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  token: string
+  password: string
+}
+
 // User
 export interface CreateUserRequest {
   name: string
