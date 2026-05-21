@@ -82,6 +82,18 @@ function formatDate(value: string) {
   })
 }
 
+function dueLabel(value: string) {
+  const due = new Date(`${value}T00:00:00`)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const days = Math.round((due.getTime() - today.getTime()) / 86400000)
+
+  if (days < 0) return `Vencida hace ${Math.abs(days)} d`
+  if (days === 0) return 'Vence hoy'
+  if (days === 1) return 'Vence manana'
+  return `Vence en ${days} d`
+}
+
 function monthlyAmount(item: Subscription) {
   switch (item.frequency) {
     case 'DAILY':
@@ -141,6 +153,7 @@ export default function SubscriptionsPage() {
   const canceled = items.filter((item) => item.status === 'CANCELED')
   const activeMonthly = active.reduce((total, item) => total + monthlyAmount(item), 0)
   const summaryCurrency = active[0]?.currency ?? items[0]?.currency ?? 'COP'
+  const nextSubscription = [...active].sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))[0]
 
   return (
     <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110]">
@@ -157,10 +170,11 @@ export default function SubscriptionsPage() {
         </div>
 
         {items.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 mb-6">
-            <SummaryCell label="Activas" value={`${active.length}`} />
-            <SummaryCell label="Proyeccion / mes" value={formatMoney(Math.round(activeMonthly), summaryCurrency)} />
-          </div>
+          <SubscriptionSummary
+            activeCount={active.length}
+            monthlyTotal={formatMoney(Math.round(activeMonthly), summaryCurrency)}
+            nextSubscription={nextSubscription}
+          />
         )}
 
         {isLoading && (
@@ -230,11 +244,50 @@ export default function SubscriptionsPage() {
   )
 }
 
+function SubscriptionSummary({
+  activeCount,
+  monthlyTotal,
+  nextSubscription,
+}: {
+  activeCount: number
+  monthlyTotal: string
+  nextSubscription?: Subscription
+}) {
+  return (
+    <div className="mb-6 overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-[#2a2a28] dark:bg-[#1c1c1a]">
+      <div className="grid grid-cols-[0.8fr_1.2fr] divide-x divide-gray-100 dark:divide-[#2a2a28]">
+        <SummaryCell label="Activas" value={`${activeCount}`} />
+        <SummaryCell label="Proyeccion mensual" value={monthlyTotal} />
+      </div>
+      {nextSubscription && (
+        <div className="flex items-center gap-3 border-t border-gray-100 px-4 py-3 dark:border-[#2a2a28]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-500 dark:bg-rose-950/30 dark:text-rose-300">
+            <CalendarClock size={16} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              Proximo cobro
+            </p>
+            <div className="flex min-w-0 items-baseline justify-between gap-3">
+              <p className="truncate text-sm font-medium text-gray-800 dark:text-gray-100">
+                {nextSubscription.name}
+              </p>
+              <p className="shrink-0 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-300">
+                {formatDate(nextSubscription.nextDueDate)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SummaryCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-[#2a2a28] bg-white dark:bg-[#1c1c1a] px-3 py-2.5 min-w-0">
+    <div className="min-w-0 px-4 py-3">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">{label}</p>
-      <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate tabular-nums">{value}</p>
+      <p className="truncate text-sm font-semibold tabular-nums text-gray-800 dark:text-gray-100">{value}</p>
     </div>
   )
 }
@@ -266,7 +319,7 @@ function SubscriptionSection({
       <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
         {title} · {items.length}
       </p>
-      <div className={cn('flex flex-col gap-2', dimmed && 'opacity-70')}>
+      <div className={cn('flex flex-col gap-2', dimmed && 'opacity-75')}>
         {items.map((item) => (
           <SubscriptionCard
             key={item.id}
@@ -301,52 +354,78 @@ function SubscriptionCard({
   onStatus: (status: SubscriptionStatus) => void
   onDelete: () => void
 }) {
+  const dueCopy = item.status === 'CANCELED' ? 'Ultimo vencimiento' : dueLabel(item.nextDueDate)
+
   return (
-    <div className="rounded-2xl border border-gray-100 dark:border-[#2a2a28] bg-white dark:bg-[#1c1c1a] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className={cn(
-              'text-xs font-semibold',
-              item.status === 'ACTIVE' ? 'text-emerald-500' : item.status === 'PAUSED' ? 'text-amber-500' : 'text-gray-400',
-            )}>
-              {STATUS_LABELS[item.status]}
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500">· {FREQUENCY_LABELS[item.frequency]}</span>
+    <div className="overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-[#2a2a28] dark:bg-[#1c1c1a]">
+      <div className="px-4 pb-3 pt-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex min-w-0 items-center gap-2">
+              <StatusBadge status={item.status} />
+              <span className="truncate text-xs text-gray-400 dark:text-gray-500">
+                {FREQUENCY_LABELS[item.frequency]}{item.autoRenew ? ' · Auto' : ''}
+              </span>
+            </div>
+            <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</p>
           </div>
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{item.name}</p>
-          <p className="text-base font-bold text-rose-500 mt-0.5 tabular-nums">
-            {formatMoney(item.amount, item.currency)}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1.5 text-xs text-gray-400 dark:text-gray-500">
-            <span>{accountLabel}</span>
-            <span>·</span>
-            <span>{categoryLabel}</span>
+          <div className="shrink-0 text-right">
+            <p className="text-base font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+              {formatMoney(item.amount, item.currency)}
+            </p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500">
+              {item.frequency === 'MONTHLY' ? 'por mes' : FREQUENCY_LABELS[item.frequency].toLowerCase()}
+            </p>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-400 dark:text-gray-500">
-            <span className="flex items-center gap-1">
-              <CalendarClock size={11} />
+        </div>
+
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg bg-gray-50 px-3 py-2.5 dark:bg-[#252523]">
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              {dueCopy}
+            </p>
+            <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-200">
               {formatDate(item.nextDueDate)}
-            </span>
-            <span className="flex items-center gap-1">
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+            <span className="flex items-center gap-1 rounded-md bg-white px-2 py-1 dark:bg-[#1c1c1a]">
               <BellRing size={11} />
               {item.reminderDaysBefore} d
             </span>
-            {item.lastPaidDate && (
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400 dark:text-gray-500">
+          <span className="truncate">{accountLabel}</span>
+          <span>·</span>
+          <span className="truncate">{categoryLabel}</span>
+          {item.lastPaidDate && (
+            <>
+              <span>·</span>
               <span className="flex items-center gap-1">
                 <CheckCircle2 size={11} />
                 {formatDate(item.lastPaidDate)}
               </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center gap-1 shrink-0">
-          {item.status !== 'CANCELED' && (
-            <IconButton title="Registrar pago" onClick={onPay} className="text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
-              <ReceiptText size={14} />
-            </IconButton>
+            </>
           )}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50/70 px-3 py-2 dark:border-[#2a2a28] dark:bg-[#171715]">
+        {item.status !== 'CANCELED' ? (
+          <button
+            title="Registrar pago"
+            onClick={onPay}
+            className="flex h-8 min-w-0 items-center gap-1.5 rounded-lg bg-emerald-500 px-2.5 text-xs font-medium text-white transition-colors hover:bg-emerald-600"
+          >
+            <ReceiptText size={13} />
+            Pago
+          </button>
+        ) : (
+          <div />
+        )}
+        <div className="flex items-center gap-0.5">
           <IconButton title="Editar" onClick={onEdit}>
             <Pencil size={14} />
           </IconButton>
@@ -360,7 +439,7 @@ function SubscriptionCard({
             </IconButton>
           )}
           {item.status !== 'CANCELED' && (
-            <IconButton title="Cancelar" onClick={() => onStatus('CANCELED')} className="text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523]">
+            <IconButton title="Cancelar" onClick={() => onStatus('CANCELED')}>
               <Ban size={14} />
             </IconButton>
           )}
@@ -370,6 +449,19 @@ function SubscriptionCard({
         </div>
       </div>
     </div>
+  )
+}
+
+function StatusBadge({ status }: { status: SubscriptionStatus }) {
+  return (
+    <span className={cn(
+      'rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
+      status === 'ACTIVE' && 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-300',
+      status === 'PAUSED' && 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-300',
+      status === 'CANCELED' && 'bg-gray-100 text-gray-500 dark:bg-[#252523] dark:text-gray-400',
+    )}>
+      {STATUS_LABELS[status]}
+    </span>
   )
 }
 
