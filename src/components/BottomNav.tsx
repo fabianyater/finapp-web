@@ -29,7 +29,7 @@ export default function BottomNav() {
               'relative z-10 flex h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-semibold transition-colors duration-300',
               isActive
                 ? 'text-white dark:text-[#1a1a18]'
-                : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-[#252523] dark:hover:text-gray-200',
+                : 'cursor-pointer text-gray-400 dark:text-gray-500',
             )}
           >
             <Icon size={17} strokeWidth={2.1} />
