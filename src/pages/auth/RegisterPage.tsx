@@ -29,9 +29,9 @@ export default function RegisterPage() {
 
   const mutation = useMutation({
     mutationFn: authApi.register,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       localStorage.setItem('onboarding_pending', '1')
-      navigate('/login')
+      navigate(`/verify-email?email=${encodeURIComponent(variables.email)}`)
     },
     onError: () => {
       toast.error('No se pudo crear la cuenta', { description: 'Intenta de nuevo o usa otro email.' })

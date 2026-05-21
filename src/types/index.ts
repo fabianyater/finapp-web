@@ -20,6 +20,10 @@ export interface ResetPasswordRequest {
   password: string
 }
 
+export interface VerifyEmailRequest {
+  token: string
+}
+
 // User
 export interface CreateUserRequest {
   name: string

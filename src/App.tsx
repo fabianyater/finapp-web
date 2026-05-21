@@ -7,6 +7,7 @@ import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
+import VerifyEmailPage from "@/pages/auth/VerifyEmailPage";
 import BudgetsPage from "@/pages/budgets/BudgetsPage";
 import CategoriesPage from "@/pages/categories/CategoriesPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/onboarding" element={<OnboardingPage />} />

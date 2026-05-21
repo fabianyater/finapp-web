@@ -8,6 +8,7 @@ import { Eye, EyeOff, TrendingUp, Sparkles, Tag, Lock, ArrowRight, Loader2 } fro
 import { toast } from '@/store/toast'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
+import axios from 'axios'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
   const [showPassword, setShowPassword] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState('')
 
   const {
     register,
@@ -34,7 +36,12 @@ export default function LoginPage() {
       const destination = localStorage.getItem('onboarding_pending') ? '/onboarding' : '/dashboard'
       navigate(destination)
     },
-    onError: () => {
+    onError: (error, variables) => {
+      if (axios.isAxiosError<{ status?: string }>(error) && error.response?.data.status === 'EMAIL_NOT_VERIFIED') {
+        setUnverifiedEmail(variables.email)
+        toast.info('Valida tu correo', { description: 'Necesitas confirmar tu email antes de entrar.' })
+        return
+      }
       toast.error('Credenciales inválidas', { description: 'Revisa tu email y contraseña.' })
     },
   })
@@ -222,6 +229,18 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {unverifiedEmail && (
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Tu cuenta necesita validacion.{' '}
+              <Link
+                to={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`}
+                className="font-semibold text-amber-950 underline underline-offset-2"
+              >
+                Enviar enlace
+              </Link>
+            </div>
+          )}
+
           {/* Register + trust signal */}
           <div className="mt-6 pt-5 border-t border-gray-200 flex items-center justify-between">
             <p className="text-sm text-gray-500">
@@ -238,6 +257,12 @@ export default function LoginPage() {
               <span className="text-xs">Seguro</span>
             </div>
           </div>
+          <Link
+            to="/verify-email"
+            className="mt-4 inline-flex text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
+          >
+            Validar correo pendiente
+          </Link>
         </div>
       </div>
     </div>

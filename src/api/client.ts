@@ -27,17 +27,27 @@ function onRefreshed(token: string) {
 }
 
 function logout() {
+  clearAuth()
+  window.location.href = '/login'
+}
+
+function clearAuth() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
   localStorage.removeItem('user')
   queryClient.clear()
-  window.location.href = '/login'
 }
 
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config
+
+    if (error.response?.status === 403 && error.response?.data?.status === 'EMAIL_NOT_VERIFIED') {
+      clearAuth()
+      window.location.href = '/verify-email'
+      return Promise.reject(error)
+    }
 
     if (error.response?.status !== 401) {
       return Promise.reject(error)

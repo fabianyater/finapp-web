@@ -4,6 +4,7 @@ import type {
   CreateUserRequest,
   RequestPasswordResetRequest,
   ResetPasswordRequest,
+  VerifyEmailRequest,
 } from '@/types'
 import { apiClient } from './client'
 
@@ -22,4 +23,10 @@ export const authApi = {
 
   resetPassword: (data: ResetPasswordRequest) =>
     apiClient.post('/auth/password-reset', data).then((r) => r.data),
+
+  requestEmailVerification: (data: RequestPasswordResetRequest) =>
+    apiClient.post('/auth/email-verification/request', data).then((r) => r.data),
+
+  verifyEmail: (data: VerifyEmailRequest) =>
+    apiClient.post('/auth/email-verification', data).then((r) => r.data),
 }
