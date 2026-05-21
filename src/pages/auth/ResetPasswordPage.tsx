@@ -3,7 +3,7 @@ import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff, Loader2, Save } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type UseFormRegisterReturn } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
@@ -23,8 +23,8 @@ type FormData = z.infer<typeof schema>;
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [token] = useState(() => searchParams.get("token") ?? "");
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
@@ -47,6 +47,12 @@ export default function ResetPasswordPage() {
       });
     },
   });
+
+  useEffect(() => {
+    if (searchParams.has("token")) {
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   return (
     <AuthRecoveryShell
