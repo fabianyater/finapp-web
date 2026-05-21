@@ -6,7 +6,6 @@ import { z } from 'zod'
 import {
   Ban,
   BellRing,
-  CalendarClock,
   CheckCircle2,
   CreditCard,
   Loader2,
@@ -25,6 +24,7 @@ import { categoriesApi, type CategoryDto } from '@/api/categories'
 import { subscriptionsApi } from '@/api/subscriptions'
 import { cn } from '@/lib/utils'
 import { toast } from '@/store/toast'
+import { SubscriptionBrandMark } from './SubscriptionBrandMark'
 import type {
   RecurringFrequency,
   Subscription,
@@ -261,9 +261,7 @@ function SubscriptionSummary({
       </div>
       {nextSubscription && (
         <div className="flex items-center gap-3 border-t border-gray-100 px-4 py-3 dark:border-[#2a2a28]">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-500 dark:bg-rose-950/30 dark:text-rose-300">
-            <CalendarClock size={16} />
-          </div>
+          <SubscriptionBrandMark name={nextSubscription.name} className="h-9 w-9 rounded-lg" />
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
               Proximo cobro
@@ -360,6 +358,7 @@ function SubscriptionCard({
     <div className="overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-[#2a2a28] dark:bg-[#1c1c1a]">
       <div className="px-4 pb-3 pt-4">
         <div className="flex items-start justify-between gap-3">
+          <SubscriptionBrandMark name={item.name} />
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex min-w-0 items-center gap-2">
               <StatusBadge status={item.status} />
@@ -511,6 +510,7 @@ function SubscriptionSheet({
   })
 
   const accountId = useWatch({ control, name: 'accountId' })
+  const name = useWatch({ control, name: 'name' })
   const currency = accounts.find((account) => account.id === accountId)?.currency ?? item?.currency ?? 'COP'
   const payload = (data: SubscriptionFormData) => ({
     ...data,
@@ -546,7 +546,10 @@ function SubscriptionSheet({
         className="flex flex-col gap-4 p-5"
       >
         <Field label="Nombre" error={errors.name?.message}>
-          <input {...register('name')} placeholder="Netflix" className={inputClass} />
+          <div className="flex items-center gap-2">
+            <SubscriptionBrandMark name={name ?? ''} className="h-10 w-10 rounded-lg" />
+            <input {...register('name')} placeholder="Netflix" className={inputClass} />
+          </div>
         </Field>
         <Field label="Cuenta" error={errors.accountId?.message}>
           <select {...register('accountId')} className={inputClass}>
@@ -655,11 +658,14 @@ function PaymentSheet({ item, onClose }: { item: Subscription; onClose: () => vo
 
   return (
     <SheetFrame title="Registrar pago" onClose={onClose}>
-      <div className="p-5 border-b border-gray-100 dark:border-[#2a2a28]">
-        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{item.name}</p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-          Vence {formatDate(item.nextDueDate)} · {formatMoney(item.amount, item.currency)}
-        </p>
+      <div className="flex items-center gap-3 p-5 border-b border-gray-100 dark:border-[#2a2a28]">
+        <SubscriptionBrandMark name={item.name} />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{item.name}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            Vence {formatDate(item.nextDueDate)} · {formatMoney(item.amount, item.currency)}
+          </p>
+        </div>
       </div>
       <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="flex flex-col gap-4 p-5 border-b border-gray-100 dark:border-[#2a2a28]">
         <Field label="Fecha de pago" error={errors.paidDate?.message}>
