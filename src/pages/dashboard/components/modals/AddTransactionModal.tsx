@@ -100,11 +100,11 @@ export default function AddTransactionModal({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-[2px] z-40"
+        className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-[2px] z-40 fade-in"
         onClick={onClose}
       />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="bg-white dark:bg-[#1a1a18] rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto flex flex-col h-[500px]">
+        <div className="modal-panel-in bg-white dark:bg-[#1a1a18] rounded-2xl shadow-2xl w-full max-w-sm pointer-events-auto flex flex-col h-[500px]">
           <div className="flex-shrink-0 px-5 py-4 flex items-center justify-between border-b border-gray-100 dark:border-[#2a2a28]">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">

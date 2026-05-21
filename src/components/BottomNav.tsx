@@ -18,6 +18,10 @@ export default function BottomNav() {
       <div className="pointer-events-auto relative mx-auto grid max-w-md grid-cols-4 gap-1 rounded-2xl border border-gray-200 bg-white/95 p-1.5 shadow-[0_-10px_40px_rgba(16,40,27,0.14)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95">
         <span
           aria-hidden
+          className="pointer-events-none absolute left-1/2 top-0 h-8 w-[4.5rem] -translate-x-1/2 -translate-y-px rounded-b-3xl bg-[#f3f6f1] dark:bg-[#111110]"
+        />
+        <span
+          aria-hidden
           className="absolute bottom-1.5 left-1.5 top-1.5 w-[calc((100%-1.5rem)/4)] rounded-xl bg-emerald-700 shadow-sm transition-transform duration-300 ease-out dark:bg-white"
           style={{ transform: `translateX(calc(${activeIndex} * (100% + 0.25rem)))` }}
         />
