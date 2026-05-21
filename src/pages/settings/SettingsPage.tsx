@@ -144,7 +144,7 @@ export default function SettingsPage() {
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto pb-20">
-      <PageHeader title="Configuración" />
+      <PageHeader title="Configuración" back={false} />
 
       <div className="space-y-4">
 

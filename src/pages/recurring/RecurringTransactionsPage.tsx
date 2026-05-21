@@ -380,7 +380,7 @@ export default function RecurringTransactionsPage() {
     <div className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110]">
       <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
         <div className="flex items-center justify-between mb-6">
-          <PageHeader title="Recurrentes" className="flex items-center gap-2" />
+          <PageHeader title="Recurrentes" back={false} className="flex items-center gap-2" />
           <button
             onClick={() => setSheet({ open: true, item: null })}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1a1a18] dark:bg-white text-white dark:text-[#1a1a18] text-sm font-medium hover:opacity-90 transition-opacity"
