@@ -34,7 +34,7 @@ export default function CategoryBars({
   const maxAmount = Math.max(
     ...items.map((i) => {
       const b = budgets?.[i.categoryId];
-      return b ? Math.max(i.total, b.limitAmount) : i.total;
+      return b ? Math.max(i.total, b.limitAmount, b.spentAmount) : i.total;
     }),
     1,
   );
@@ -68,14 +68,18 @@ export default function CategoryBars({
         };
 
         if (budget) {
-          const pct = total / budget.limitAmount;
+          const pct = budget.spentAmount / budget.limitAmount;
           const baseColor = catColor ?? barColor;
+          const budgetSpentBarH = Math.round((budget.spentAmount / maxAmount) * MAX_BAR_H);
           const budgetH = Math.max(
             isLow ? MIN_INLINE_H : MIN_BAR_H,
             Math.round((budget.limitAmount / maxAmount) * MAX_BAR_H),
           );
-          const fillH = total > budget.limitAmount ? Math.max(rawBarH, budgetH + 4) : rawBarH;
-          const containerH = Math.max(budgetH, fillH);
+          const fillH = budget.spentAmount > budget.limitAmount
+            ? Math.max(budgetSpentBarH, budgetH + 4)
+            : budgetSpentBarH;
+          const accountBarH = Math.max(isLow ? MIN_INLINE_H : MIN_BAR_H, rawBarH);
+          const containerH = Math.max(budgetH, fillH, accountBarH);
           const borderColor = isSelected
             ? "rgba(156,163,175,0.55)"
             : "rgba(156,163,175,0.3)";
@@ -84,7 +88,7 @@ export default function CategoryBars({
           return (
             <div
               key={categoryId}
-              title={name}
+              title={`${name}: ${fmtShort(total)} en esta cuenta · ${fmtShort(budget.spentAmount)} de ${fmtShort(budget.limitAmount)} global`}
               onClick={() => onSelect(categoryId)}
               className="bar-grow relative shrink-0 cursor-pointer"
               style={{
@@ -110,6 +114,15 @@ export default function CategoryBars({
                   }}
                 />
               )}
+              <div
+                className="absolute bottom-0 inset-x-2 pointer-events-none"
+                style={{
+                  height: `${accountBarH}px`,
+                  borderRadius: "10px",
+                  borderTop: `3px solid ${hexToRgba(baseColor, 0.9)}`,
+                  zIndex: 3,
+                }}
+              />
               <div
                 className="absolute bottom-0 inset-x-0 pointer-events-none"
                 style={{
@@ -137,7 +150,7 @@ export default function CategoryBars({
                     className="text-[9px] font-semibold tabular-nums leading-none"
                     style={{ color: hexToRgba(baseColor, 0.75) }}
                   >
-                    {`${Math.round(pct * 100)}%`}
+                    {`${Math.round(pct * 100)}% global`}
                   </span>
                 )}
               </div>

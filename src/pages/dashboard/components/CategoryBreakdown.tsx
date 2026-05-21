@@ -57,6 +57,11 @@ export default function CategoryBreakdown({
           </Link>
         </div>
       </div>
+      {categoryView === "EXPENSE" && Object.keys(budgetMap).length > 0 && (
+        <p className="px-4 pt-1 text-[10px] text-gray-400 dark:text-gray-500">
+          Las barras muestran esta cuenta. El avance del presupuesto es global.
+        </p>
+      )}
 
       <div
         className="px-5 pt-3 pb-4"
