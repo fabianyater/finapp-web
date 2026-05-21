@@ -229,8 +229,6 @@ export default function DashboardPage() {
           accounts={dashData.accounts}
           currency={currency}
           categoryMap={categoryMap}
-          dateFrom={monthNav.dateFrom}
-          dateTo={monthNav.dateTo}
           initialCategoryId={dashState.txFullModalCategoryId}
           onClose={dashState.closeTxFullModal}
           onSelectTx={dashState.setSelectedTx}
