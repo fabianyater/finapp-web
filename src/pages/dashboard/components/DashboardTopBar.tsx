@@ -1,6 +1,6 @@
 import NotificationBell from "@/components/NotificationBell";
 import UserMenu from "@/components/UserMenu";
-import { RepeatIcon, Settings } from "lucide-react";
+import { CreditCard, RepeatIcon, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function DashboardTopBar() {
@@ -16,6 +16,13 @@ export default function DashboardTopBar() {
           title="Transacciones recurrentes"
         >
           <RepeatIcon size={17} />
+        </Link>
+        <Link
+          to="/subscriptions"
+          className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-[#252523] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          title="Suscripciones"
+        >
+          <CreditCard size={17} />
         </Link>
         <Link
           to="/settings"

@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 import { toast } from '@/store/toast'
 import { usersApi } from '@/api/users'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
-import { ChevronDown, ChevronRight, Loader2, Sun, Moon, Monitor, Wallet, Tag, Hash, RepeatIcon, PiggyBank } from 'lucide-react'
+import { ChevronDown, ChevronRight, CreditCard, Loader2, Sun, Moon, Monitor, Wallet, Tag, Hash, RepeatIcon, PiggyBank } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 
@@ -190,6 +190,7 @@ export default function SettingsPage() {
               { to: '/categories', icon: Tag, label: 'Categorías', sub: 'Ver y gestionar tus categorías' },
               { to: '/tags', icon: Hash, label: 'Tags', sub: 'Renombrar y eliminar tags de transacciones' },
               { to: '/budgets', icon: PiggyBank, label: 'Presupuestos', sub: 'Límites mensuales por categoría' },
+              { to: '/subscriptions', icon: CreditCard, label: 'Suscripciones', sub: 'Cobros, pagos y recordatorios' },
               {
                 to: '/recurring',
                 icon: RepeatIcon,

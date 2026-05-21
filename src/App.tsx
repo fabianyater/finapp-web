@@ -12,6 +12,7 @@ import OnboardingPage from "@/pages/onboarding/OnboardingPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
 import RecurringTransactionsPage from "@/pages/recurring/RecurringTransactionsPage";
 import SettingsPage from "@/pages/settings/SettingsPage";
+import SubscriptionsPage from "@/pages/subscriptions/SubscriptionsPage";
 import TagsPage from "@/pages/tags/TagsPage";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
@@ -37,6 +38,7 @@ export default function App() {
                 element={<RecurringTransactionsPage />}
               />
               <Route path="/budgets" element={<BudgetsPage />} />
+              <Route path="/subscriptions" element={<SubscriptionsPage />} />
               <Route path="/tags" element={<TagsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/profile" element={<ProfilePage />} />

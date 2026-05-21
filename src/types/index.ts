@@ -178,6 +178,52 @@ export interface UpdateRecurringTransactionRequest {
   nextDueDate: string
 }
 
+// Subscription
+export type SubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELED'
+
+export interface Subscription {
+  id: string
+  name: string
+  accountId: string
+  categoryId: string
+  amount: number
+  currency: string
+  frequency: RecurringFrequency
+  nextDueDate: string
+  lastPaidDate: string | null
+  reminderDaysBefore: number
+  autoRenew: boolean
+  status: SubscriptionStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SubscriptionRequest {
+  name: string
+  accountId: string
+  categoryId: string
+  amount: number
+  frequency: RecurringFrequency
+  nextDueDate: string
+  reminderDaysBefore?: number
+  autoRenew?: boolean
+}
+
+export interface SubscriptionPayment {
+  id: string
+  transactionId: string | null
+  dueDate: string
+  paidDate: string
+  amount: number
+  currency: string
+  createdAt: string
+}
+
+export interface RecordSubscriptionPaymentRequest {
+  paidDate?: string
+  note?: string
+}
+
 // Notification
 export interface NotificationItem {
   id: string
