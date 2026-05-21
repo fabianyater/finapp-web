@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { ArrowLeftRight, Plus, Receipt, X } from 'lucide-react'
+import { ArrowLeftRight, ChevronUp, Plus, Receipt, X } from 'lucide-react'
 import { useState } from 'react'
 
 export default function CreateActionMenu({
@@ -22,9 +22,9 @@ export default function CreateActionMenu({
           className="fixed inset-0 z-20 bg-black/10 backdrop-blur-[1px]"
         />
       )}
-      <div className="fixed bottom-24 right-4 z-30 sm:right-[max(1rem,calc((100vw-42rem)/2))]">
+      <div className="fixed bottom-24 left-1/2 z-30 -translate-x-1/2 sm:left-auto sm:right-[max(1rem,calc((100vw-42rem)/2))] sm:translate-x-0">
         {open && (
-          <div className="absolute bottom-16 right-0 w-56 overflow-hidden rounded-2xl border border-gray-200 bg-white p-1.5 shadow-2xl dark:border-[#2a2a28] dark:bg-[#1a1a18]">
+          <div className="absolute bottom-14 left-1/2 w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-gray-200/90 bg-white/95 p-1.5 shadow-[0_18px_60px_rgba(17,24,39,0.2)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#1a1a18]/95 sm:left-auto sm:right-0 sm:w-64 sm:translate-x-0">
             <ActionButton
               icon={Receipt}
               title="Nueva transaccion"
@@ -49,9 +49,13 @@ export default function CreateActionMenu({
         <button
           aria-label={open ? 'Cerrar acciones' : 'Nueva operacion'}
           onClick={() => setOpen((value) => !value)}
-          className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1a1a18] text-white shadow-[0_18px_50px_rgba(17,24,39,0.28)] transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-[#1a1a18]"
+          className="group flex h-11 items-center gap-2 rounded-full border border-[#1a1a18] bg-[#1a1a18] px-3.5 text-white shadow-[0_14px_36px_rgba(17,24,39,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(17,24,39,0.28)] dark:border-white dark:bg-white dark:text-[#1a1a18]"
         >
-          {open ? <X size={21} /> : <Plus size={23} />}
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 dark:bg-black/10">
+            {open ? <X size={15} /> : <Plus size={16} strokeWidth={2.5} />}
+          </span>
+          <span className="text-sm font-semibold">Crear</span>
+          {!open && <ChevronUp size={14} className="opacity-55 transition-opacity group-hover:opacity-80" />}
         </button>
       </div>
     </>
@@ -76,13 +80,13 @@ function ActionButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors',
+        'flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors',
         disabled
           ? 'cursor-not-allowed opacity-45'
           : 'hover:bg-gray-50 dark:hover:bg-[#252523]',
       )}
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-700 dark:bg-[#252523] dark:text-gray-200">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700 dark:bg-[#252523] dark:text-gray-200">
         <Icon size={16} />
       </span>
       <span className="min-w-0">
