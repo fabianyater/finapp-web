@@ -11,6 +11,7 @@ import TransactionDetailModal from "./components/modals/TransactionDetailModal";
 import TransferDetailModal from "./components/modals/TransferDetailModal";
 import TransferModal from "./components/modals/TransferModal";
 import SummaryCards from "./components/SummaryCards";
+import TransactionFullModal from "./components/TransactionFullModal";
 import TotalBalanceDisplay from "./components/TotalBalanceDisplay";
 import TransactionSection from "./components/TransactionSection";
 import { useDashboardData } from "./hooks/useDashboardData";
@@ -30,12 +31,6 @@ export default function DashboardPage() {
     dateFrom: monthNav.dateFrom,
     dateTo: monthNav.dateTo,
     categoryView: dashState.categoryView,
-    txSearch: dashState.txSearch,
-    txTypeFilter: dashState.txTypeFilter,
-    selectedCategoryId: dashState.selectedCategoryId,
-    selectedTags: dashState.selectedTags,
-    txPage: dashState.txPage,
-    showAllTxns: dashState.showAllTxns,
     showDeleted: dashState.showDeleted,
   });
 
@@ -199,39 +194,23 @@ export default function DashboardPage() {
         summaryCats={dashData.summaryCats}
         selectedCategoryId={dashState.selectedCategoryId}
         budgetMap={dashData.budgetMap}
-        txSectionRef={txSectionRef}
         onSelectCategory={dashState.setSelectedCategoryId}
-        onSetShowAllTxns={dashState.setShowAllTxns}
-        onSetTxPage={dashState.setTxPage}
+        onOpenFullModal={dashState.openTxFullModal}
       />
 
       <TransactionSection
         sectionRef={txSectionRef}
         showDeleted={dashState.showDeleted}
-        showAllTxns={dashState.showAllTxns}
-        txSearchInput={dashState.txSearchInput}
-        txSearch={dashState.txSearch}
-        txTypeFilter={dashState.txTypeFilter}
-        selectedCategoryId={dashState.selectedCategoryId}
-        selectedTags={dashState.selectedTags}
-        availableTags={dashData.availableTags}
-        txPage={dashState.txPage}
         isExporting={dashState.isExporting}
         deletedLoading={dashData.deletedLoading}
         deletedTxs={dashData.deletedTxs}
-        allTxLoading={dashData.allTxLoading}
         txLoading={dashData.txLoading}
-        allTxData={dashData.allTxData}
         recentTxs={recentTxs}
         accounts={dashData.accounts}
         currency={currency}
         categoryMap={categoryMap}
         onSetShowDeleted={dashState.setShowDeleted}
-        onSetShowAllTxns={dashState.setShowAllTxns}
-        onSetTxSearchInput={dashState.setTxSearchInput}
-        onSetTxTypeFilter={dashState.setTxTypeFilter}
-        onSetSelectedCategoryId={dashState.setSelectedCategoryId}
-        onSetTxPage={dashState.setTxPage}
+        onOpenFullModal={dashState.openTxFullModal}
         onExportCsv={dashState.handleExportCsv}
         onSelectTx={dashState.setSelectedTx}
         onSelectTransferTx={dashState.setSelectedTransferTx}
@@ -243,6 +222,21 @@ export default function DashboardPage() {
         onTransaction={() => dashState.setShowTransaction(true)}
         onTransfer={() => dashState.setShowTransfer(true)}
       />
+
+      {dashState.showTxFullModal && dashState.selectedAccountId && (
+        <TransactionFullModal
+          accountId={dashState.selectedAccountId}
+          accounts={dashData.accounts}
+          currency={currency}
+          categoryMap={categoryMap}
+          dateFrom={monthNav.dateFrom}
+          dateTo={monthNav.dateTo}
+          initialCategoryId={dashState.txFullModalCategoryId}
+          onClose={dashState.closeTxFullModal}
+          onSelectTx={dashState.setSelectedTx}
+          onSelectTransferTx={dashState.setSelectedTransferTx}
+        />
+      )}
 
       {dashState.showTransaction && dashState.selectedAccountId && (
         <AddTransactionModal
