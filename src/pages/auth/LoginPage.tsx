@@ -257,12 +257,6 @@ export default function LoginPage() {
               <span className="text-xs">Seguro</span>
             </div>
           </div>
-          <Link
-            to="/verify-email"
-            className="mt-4 inline-flex text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
-          >
-            Validar correo pendiente
-          </Link>
         </div>
       </div>
     </div>

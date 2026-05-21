@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { ArrowLeftRight, Plus, Receipt, X } from 'lucide-react'
+import { ArrowLeftRight, ChevronUp, Plus, Receipt, X } from 'lucide-react'
 import { useState } from 'react'
 
 export default function CreateActionMenu({
@@ -19,12 +19,12 @@ export default function CreateActionMenu({
         <button
           aria-label="Cerrar acciones"
           onClick={() => setOpen(false)}
-          className="fixed inset-0 z-20 bg-black/10 backdrop-blur-[1px] fade-in"
+          className="fixed inset-0 z-20 bg-black/10 backdrop-blur-[1px]"
         />
       )}
-      <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2">
+      <div className="fixed bottom-24 left-1/2 z-30 -translate-x-1/2 sm:left-auto sm:right-[max(1rem,calc((100vw-42rem)/2))] sm:translate-x-0">
         {open && (
-          <div className="create-action-popover absolute bottom-20 left-1/2 w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-gray-200/90 bg-white/95 p-1.5 shadow-[0_20px_70px_rgba(16,40,27,0.24)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#1a1a18]/95">
+          <div className="absolute bottom-14 left-1/2 w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-gray-200/90 bg-white/95 p-1.5 shadow-[0_18px_60px_rgba(17,24,39,0.2)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#1a1a18]/95 sm:left-auto sm:right-0 sm:w-64 sm:translate-x-0">
             <ActionButton
               icon={Receipt}
               title="Nueva transaccion"
@@ -49,9 +49,13 @@ export default function CreateActionMenu({
         <button
           aria-label={open ? 'Cerrar acciones' : 'Nueva operacion'}
           onClick={() => setOpen((value) => !value)}
-          className="group flex h-14 w-14 items-center justify-center rounded-full border-[5px] border-[#f3f6f1] bg-emerald-700 text-white shadow-[0_16px_38px_rgba(16,90,52,0.34)] transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_20px_46px_rgba(16,90,52,0.38)] dark:border-[#111110] dark:bg-white dark:text-[#1a1a18]"
+          className="group flex h-11 items-center gap-2 rounded-full border border-emerald-800 bg-emerald-700 px-3.5 text-white shadow-[0_14px_36px_rgba(16,90,52,0.28)] transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_18px_42px_rgba(16,90,52,0.32)] dark:border-white dark:bg-white dark:text-[#1a1a18]"
         >
-          {open ? <X size={18} /> : <Plus size={21} strokeWidth={2.5} />}
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15 dark:bg-black/10">
+            {open ? <X size={15} /> : <Plus size={16} strokeWidth={2.5} />}
+          </span>
+          <span className="text-sm font-semibold">Crear</span>
+          {!open && <ChevronUp size={14} className="opacity-55 transition-opacity group-hover:opacity-80" />}
         </button>
       </div>
     </>
