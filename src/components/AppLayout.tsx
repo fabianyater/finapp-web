@@ -1,13 +1,35 @@
 import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { accountsApi } from '@/api/accounts'
+import { categoriesApi } from '@/api/categories'
 import { usersApi } from '@/api/users'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
+import CreateActionMenu from '@/pages/dashboard/components/CreateActionMenu'
+import AddTransactionModal from '@/pages/dashboard/components/modals/AddTransactionModal'
+import TransferModal from '@/pages/dashboard/components/modals/TransferModal'
 import BottomNav from './BottomNav'
+import { useState } from 'react'
 
 export default function AppLayout() {
   const { setMode } = useThemeStore()
+  const queryClient = useQueryClient()
   const { data: profile } = useQuery({ queryKey: ['user', 'me'], queryFn: usersApi.getMe })
+  const { data: accountsData } = useQuery({ queryKey: ['accounts'], queryFn: accountsApi.list })
+  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list })
+  const [showTransaction, setShowTransaction] = useState(false)
+  const [showTransfer, setShowTransfer] = useState(false)
+
+  const accounts = (accountsData?.data ?? []).filter((account) => !account.isArchived)
+  const defaultAccount = accounts.find((account) => account.isDefault) ?? accounts[0]
+
+  function invalidateMovementData() {
+    queryClient.invalidateQueries({ queryKey: ['transactions'] })
+    queryClient.invalidateQueries({ queryKey: ['transactions-infinite'] })
+    queryClient.invalidateQueries({ queryKey: ['accounts'] })
+    queryClient.invalidateQueries({ queryKey: ['category-summary'] })
+    queryClient.invalidateQueries({ queryKey: ['budgets'] })
+  }
 
   useEffect(() => {
     if (profile?.preferences?.theme && !localStorage.getItem('theme')) {
@@ -21,6 +43,36 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
+      <CreateActionMenu
+        canCreateTransaction={!!defaultAccount}
+        canTransfer={accounts.length >= 2}
+        onTransaction={() => setShowTransaction(true)}
+        onTransfer={() => setShowTransfer(true)}
+      />
+      {showTransaction && defaultAccount && (
+        <AddTransactionModal
+          accountId={defaultAccount.id}
+          categories={categories}
+          initialDescription=""
+          currency={defaultAccount.currency}
+          onClose={() => setShowTransaction(false)}
+          onSuccess={() => {
+            setShowTransaction(false)
+            invalidateMovementData()
+          }}
+        />
+      )}
+      {showTransfer && defaultAccount && (
+        <TransferModal
+          accounts={accounts}
+          defaultFromAccountId={defaultAccount.id}
+          onClose={() => setShowTransfer(false)}
+          onSuccess={() => {
+            setShowTransfer(false)
+            invalidateMovementData()
+          }}
+        />
+      )}
     </div>
   )
 }

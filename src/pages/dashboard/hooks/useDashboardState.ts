@@ -20,8 +20,6 @@ export function useDashboardState({
   const [showDeleted, setShowDeleted] = useState(false);
   const [selectedTx, setSelectedTx] = useState<TransactionListDto | null>(null);
   const [selectedTransferTx, setSelectedTransferTx] = useState<TransactionListDto | null>(null);
-  const [showTransaction, setShowTransaction] = useState(false);
-  const [showTransfer, setShowTransfer] = useState(false);
   const [showTxFullModal, setShowTxFullModal] = useState(false);
   const [txFullModalCategoryId, setTxFullModalCategoryId] = useState<string | null>(null);
 
@@ -41,14 +39,6 @@ export function useDashboardState({
   function closeTxFullModal() {
     setShowTxFullModal(false);
     setTxFullModalCategoryId(null);
-  }
-
-  function handleTransferSuccess() {
-    setShowTransfer(false);
-    queryClient.invalidateQueries({
-      queryKey: ["transactions", selectedAccountId, dateFrom, dateTo],
-    });
-    queryClient.invalidateQueries({ queryKey: ["accounts"] });
   }
 
   function handleTxDeleted() {
@@ -122,15 +112,10 @@ export function useDashboardState({
     setSelectedTx,
     selectedTransferTx,
     setSelectedTransferTx,
-    showTransaction,
-    setShowTransaction,
-    showTransfer,
-    setShowTransfer,
     showTxFullModal,
     txFullModalCategoryId,
     openTxFullModal,
     closeTxFullModal,
-    handleTransferSuccess,
     handleTxDeleted,
     handleTxUpdated,
     handleTransferTxDeleted,

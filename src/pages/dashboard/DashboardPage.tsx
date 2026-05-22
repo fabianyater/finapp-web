@@ -3,13 +3,10 @@ import { Wallet } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CategoryBreakdown from "./components/CategoryBreakdown";
-import CreateActionMenu from "./components/CreateActionMenu";
 import DashboardTopBar from "./components/DashboardTopBar";
 import MonthSelector from "./components/MonthSelector";
-import AddTransactionModal from "./components/modals/AddTransactionModal";
 import TransactionDetailModal from "./components/modals/TransactionDetailModal";
 import TransferDetailModal from "./components/modals/TransferDetailModal";
-import TransferModal from "./components/modals/TransferModal";
 import SummaryCards from "./components/SummaryCards";
 import TransactionFullModal from "./components/TransactionFullModal";
 import TotalBalanceDisplay from "./components/TotalBalanceDisplay";
@@ -81,11 +78,6 @@ export default function DashboardPage() {
         ? { name: tx.categoryName, color: tx.categoryColor ?? "#64748b", icon: tx.categoryIcon ?? "tag" }
         : undefined)
     );
-  }
-
-  function handleSuccess() {
-    dashState.setShowTransaction(false);
-    dashState.invalidateAfterTransaction();
   }
 
   // ── early returns ──────────────────────────────────────────────────────────
@@ -215,12 +207,6 @@ export default function DashboardPage() {
         onRestore={dashState.handleRestore}
       />
 
-      <CreateActionMenu
-        canTransfer={dashData.accounts.length >= 2}
-        onTransaction={() => dashState.setShowTransaction(true)}
-        onTransfer={() => dashState.setShowTransfer(true)}
-      />
-
       {dashState.showTxFullModal && dashState.selectedAccountId && (
         <TransactionFullModal
           accountId={dashState.selectedAccountId}
@@ -231,26 +217,6 @@ export default function DashboardPage() {
           onClose={dashState.closeTxFullModal}
           onSelectTx={dashState.setSelectedTx}
           onSelectTransferTx={dashState.setSelectedTransferTx}
-        />
-      )}
-
-      {dashState.showTransaction && dashState.selectedAccountId && (
-        <AddTransactionModal
-          accountId={dashState.selectedAccountId}
-          categories={dashData.categories}
-          initialDescription=""
-          currency={currency}
-          onClose={() => dashState.setShowTransaction(false)}
-          onSuccess={handleSuccess}
-        />
-      )}
-
-      {dashState.showTransfer && dashState.selectedAccountId && (
-        <TransferModal
-          accounts={dashData.accounts}
-          defaultFromAccountId={dashState.selectedAccountId}
-          onClose={() => dashState.setShowTransfer(false)}
-          onSuccess={dashState.handleTransferSuccess}
         />
       )}
 

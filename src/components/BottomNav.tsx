@@ -18,7 +18,7 @@ export default function BottomNav() {
       <div className="pointer-events-auto relative mx-auto grid max-w-md grid-cols-5 gap-1 rounded-2xl border border-gray-200 bg-white/95 p-1.5 shadow-[0_-10px_40px_rgba(16,40,27,0.14)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95">
         <span
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-0 h-8 w-[5.25rem] -translate-x-1/2 -translate-y-px rounded-b-3xl bg-[#f3f6f1] dark:bg-[#111110]"
+          className="pointer-events-none absolute left-1/2 top-0 h-6 w-[4.25rem] -translate-x-1/2 -translate-y-px rounded-b-3xl bg-[#f3f6f1] dark:bg-[#111110]"
         />
         <span
           aria-hidden

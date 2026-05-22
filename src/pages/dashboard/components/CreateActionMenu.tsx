@@ -3,10 +3,12 @@ import { ArrowLeftRight, Plus, Receipt, X } from 'lucide-react'
 import { useState } from 'react'
 
 export default function CreateActionMenu({
+  canCreateTransaction,
   canTransfer,
   onTransaction,
   onTransfer,
 }: {
+  canCreateTransaction: boolean
   canTransfer: boolean
   onTransaction: () => void
   onTransfer: () => void
@@ -23,10 +25,10 @@ export default function CreateActionMenu({
         />
       )}
       <div className="pointer-events-none fixed inset-x-0 bottom-[calc(0.45rem+env(safe-area-inset-bottom))] z-40 flex justify-center">
-        <div className="pointer-events-none absolute bottom-[6.8rem] flex w-max flex-col items-center gap-3">
+        <div className="pointer-events-none absolute bottom-[5.4rem] flex w-max flex-col items-center gap-2">
           <p
             className={cn(
-              'text-base font-semibold text-white transition-[opacity,transform] duration-300 ease-out',
+              'text-sm font-semibold text-white transition-[opacity,transform] duration-150 ease-out',
               open ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
             )}
           >
@@ -36,8 +38,9 @@ export default function CreateActionMenu({
             open={open}
             icon={Receipt}
             label="Transaccion"
-            title="Nueva transaccion"
+            title={canCreateTransaction ? 'Nueva transaccion' : 'Crea una cuenta primero'}
             delayClass="delay-75"
+            disabled={!canCreateTransaction}
             onClick={() => {
               setOpen(false)
               onTransaction()
@@ -61,13 +64,13 @@ export default function CreateActionMenu({
           aria-label={open ? 'Cerrar acciones' : 'Abrir acciones'}
           onClick={() => setOpen((value) => !value)}
           className={cn(
-            'pointer-events-auto group flex h-[5.25rem] w-[5.25rem] items-center justify-center rounded-full border-[3px] text-white transition-all duration-300',
+            'pointer-events-auto group flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full border-[3px] text-white transition-all duration-150',
             open
               ? 'border-white/35 bg-emerald-950 shadow-[0_18px_52px_rgba(0,0,0,0.52)]'
               : 'border-[#f3f6f1] bg-emerald-700 shadow-[0_16px_38px_rgba(16,90,52,0.34)] hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_20px_46px_rgba(16,90,52,0.38)] dark:border-[#111110]',
           )}
         >
-          {open ? <X size={34} strokeWidth={2.4} /> : <Plus size={34} strokeWidth={2.4} />}
+          {open ? <X size={27} strokeWidth={2.4} /> : <Plus size={27} strokeWidth={2.4} />}
         </button>
       </div>
     </>
@@ -98,7 +101,7 @@ function SatelliteAction({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'pointer-events-auto flex h-[4.4rem] min-w-[13rem] items-center gap-3 rounded-full border border-white/5 bg-[#1e1e1d] px-4 pr-6 text-base font-semibold text-white shadow-[0_16px_42px_rgba(0,0,0,0.34)] transition-[opacity,transform,border-color,color,background-color] duration-300 ease-out',
+        'pointer-events-auto flex h-14 min-w-[11.5rem] items-center gap-2.5 rounded-full border border-white/5 bg-[#1e1e1d] px-3 pr-5 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(0,0,0,0.34)] transition-[opacity,transform,border-color,color,background-color] duration-150 ease-out',
         delayClass,
         open
           ? 'translate-y-0 scale-100 opacity-100'
@@ -110,11 +113,11 @@ function SatelliteAction({
     >
       <span
         className={cn(
-          'flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white',
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white',
           Icon === ArrowLeftRight ? 'bg-blue-500' : 'bg-emerald-600',
         )}
       >
-        <Icon size={21} />
+        <Icon size={18} />
       </span>
       <span>{label}</span>
     </button>
