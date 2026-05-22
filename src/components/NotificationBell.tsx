@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { Bell, Check, X } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { notificationsApi } from '@/api/notifications'
 import { invitationsApi } from '@/api/invitations'
 import { cn } from '@/lib/utils'
@@ -16,17 +17,44 @@ function fmtRelative(iso: string) {
   return `Hace ${Math.floor(hours / 24)}d`
 }
 
-function InviteNotification({ n, onDone }: { n: NotificationItem; onDone: () => void }) {
+function InviteNotification({ n, onClose }: { n: NotificationItem; onClose: () => void }) {
   const invitationId = n.metadata.invitationId as string | undefined
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+
+  const { data: pendingInvitations = [] } = useQuery({
+    queryKey: ['invitations', 'pending'],
+    queryFn: invitationsApi.getPending,
+    enabled: !!invitationId,
+  })
+
+  const invitation = pendingInvitations.find((inv) => inv.id === invitationId)
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ['notifications'] })
+    qc.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
+    qc.invalidateQueries({ queryKey: ['accounts'] })
+  }
+
+  const handleDone = (navigateToAccounts?: boolean) => {
+    if (invitationId) {
+      notificationsApi.markRead(n.id).catch(() => {})
+    }
+    invalidateAll()
+    onClose()
+    if (navigateToAccounts) {
+      navigate('/accounts')
+    }
+  }
 
   const accept = useMutation({
     mutationFn: () => invitationsApi.accept(invitationId!),
-    onSuccess: onDone,
+    onSuccess: () => handleDone(true),
   })
 
   const decline = useMutation({
     mutationFn: () => invitationsApi.decline(invitationId!),
-    onSuccess: onDone,
+    onSuccess: () => handleDone(),
   })
 
   const isPending = accept.isPending || decline.isPending
@@ -40,7 +68,13 @@ function InviteNotification({ n, onDone }: { n: NotificationItem; onDone: () => 
         {n.unread && <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />}
         <div className={cn('flex-1 min-w-0', !n.unread && 'pl-3.5')}>
           <p className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{n.title}</p>
-          {n.body && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{n.body}</p>}
+          {invitation ? (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {invitation.inviterName}{invitation.inviterEmail ? ` (${invitation.inviterEmail})` : ''} te invitó a unirte a {invitation.accountName}
+            </p>
+          ) : n.body ? (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{n.body}</p>
+          ) : null}
           <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{fmtRelative(n.createdAt)}</p>
           {invitationId && (
             <div className="flex gap-2 mt-2">
@@ -150,10 +184,7 @@ export default function NotificationBell() {
                     <InviteNotification
                       key={n.id}
                       n={n}
-                      onDone={() => {
-                        notificationsApi.markRead(n.id).catch(() => {})
-                        invalidateAll()
-                      }}
+                      onClose={() => setOpen(false)}
                     />
                   )
                 }
