@@ -436,12 +436,11 @@ export default function SettingsPage() {
     "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors flex items-center gap-2";
 
   return (
-    <div className="min-h-screen bg-[#f3f6f1] dark:bg-[#111110]">
-      <div className="max-w-2xl mx-auto px-4 pt-6 pb-24">
-        <PageHeader title="Configuración" back={false} />
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      <PageHeader title="Configuración" back={false} />
 
-        <div className="rounded-2xl border border-gray-100 bg-white px-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.04)] dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:shadow-none sm:px-6">
-          {/* ── Tema ────────────────────────────────────────────── */}
+      <div className="rounded-2xl border border-gray-100 bg-white px-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.04)] dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:shadow-none sm:px-6">
+        {/* ── Tema ────────────────────────────────────────────── */}
           <section className="py-6">
             <div className="mb-4">
               <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -637,7 +636,6 @@ export default function SettingsPage() {
               </div>
             </form>
           </section>
-        </div>
       </div>
     </div>
   );
