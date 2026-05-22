@@ -188,6 +188,35 @@ export default function NotificationBell() {
                     />
                   )
                 }
+                if (n.type === 'ACCOUNT_INVITE_ACCEPTED') {
+                  const userName = n.metadata?.invitedUserName as string | undefined
+                  const userEmail = n.metadata?.invitedUserEmail as string | undefined
+                  const accountName = n.metadata?.accountName as string | undefined
+                  return (
+                    <button
+                      key={n.id}
+                      onClick={() => { if (n.unread) markRead.mutate(n.id) }}
+                      className={cn(
+                        'w-full text-left px-4 py-3 border-b border-gray-50 dark:border-[#252523] last:border-0 transition-colors',
+                        n.unread
+                          ? 'bg-emerald-50/60 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+                          : 'hover:bg-gray-50 dark:hover:bg-[#252523]'
+                      )}
+                    >
+                      <div className="flex items-start gap-2">
+                        {n.unread && <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />}
+                        <div className={cn('flex-1 min-w-0', !n.unread && 'pl-3.5')}>
+                          <p className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{n.title}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                            {userName || userEmail || 'Alguien'}
+                            {accountName ? ` aceptó tu invitación a ${accountName}` : ' aceptó tu invitación'}
+                          </p>
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{fmtRelative(n.createdAt)}</p>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                }
                 return (
                   <button
                     key={n.id}
