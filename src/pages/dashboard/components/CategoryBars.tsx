@@ -128,7 +128,7 @@ export default function CategoryBars({
                 </span>
                 <span
                   className="text-sm font-bold tabular-nums leading-none"
-                 
+                  style={{ color: baseColor }}
                 >
                   {fmtShort(total)}
                 </span>
