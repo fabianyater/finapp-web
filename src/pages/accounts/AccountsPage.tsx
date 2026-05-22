@@ -12,6 +12,7 @@ import {
   Loader2,
   Pencil,
   Plus,
+  Search,
   Trash2,
   UserMinus,
   UserPlus,
@@ -99,16 +100,6 @@ function fmt(amount: number, currency = "COP") {
 function resolveIcon(key?: string) {
   if (!key) return "💰";
   return KEY_TO_ICON[key] ?? key;
-}
-
-function balanceTotals(accounts: AccountDto[]) {
-  return Object.entries(
-    accounts.reduce<Record<string, number>>((totals, account) => {
-      totals[account.currency] =
-        (totals[account.currency] ?? 0) + account.currentBalance;
-      return totals;
-    }, {}),
-  );
 }
 
 // ── form schema ───────────────────────────────────────────────────────────────
@@ -662,61 +653,75 @@ function AccountCard({
   return (
     <div
       className={cn(
-        "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 rounded-xl border bg-white px-3 py-2.5 dark:bg-[#1a1a18]",
+        "overflow-hidden rounded-2xl border bg-white dark:bg-[#1a1a18]",
         account.isArchived
-          ? "border-gray-100 dark:border-[#2a2a28] opacity-60"
-          : "border-gray-200 dark:border-[#2a2a28]",
+          ? "border-gray-100 opacity-60 dark:border-[#2a2a28]"
+          : "border-violet-200 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#3a3348]",
       )}
     >
-      <div
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base"
-        style={{ backgroundColor: `${color}1f` }}
-      >
-        {resolveIcon(account.icon)}
+      <div className="px-4 pb-3 pt-3">
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-semibold"
+            style={{ backgroundColor: `${color}18`, color }}
+          >
+            {resolveIcon(account.icon)}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {account.name}
+                </p>
+                <p className="truncate text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                  {ACCOUNT_TYPE_LABELS[account.type]} · {account.currency}
+                  {account.isArchived ? " · Archivada" : ""}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                {account.excludeFromTotal && (
+                  <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[9px] font-semibold text-violet-600 dark:bg-violet-950/25 dark:text-violet-300">
+                    Excluida
+                  </span>
+                )}
+                {account.isDefault && (
+                  <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 dark:bg-amber-950/25 dark:text-amber-300">
+                    Principal
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <p className="mt-2 text-lg font-bold leading-none tabular-nums text-gray-950 dark:text-white">
+              {fmt(account.currentBalance, account.currency)}
+            </p>
+            <p
+              className={cn(
+                "mt-1 text-[10px] font-medium",
+                account.initialBalance === 0
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-gray-400 dark:text-gray-500",
+              )}
+            >
+              {account.initialBalance === 0
+                ? "Saldo inicial no configurado"
+                : `Saldo inicial ${fmt(account.initialBalance, account.currency)}`}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="min-w-0">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
-          <p className="min-w-0 truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
-            {account.name}
-          </p>
-          {account.isDefault && (
-            <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300">
-              Predeterminada
-            </span>
-          )}
-          {account.excludeFromTotal && (
-            <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-[#252523] dark:text-gray-400">
-              Excluida
-            </span>
-          )}
-        </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] font-medium text-gray-400 dark:text-gray-500">
-          <span>{ACCOUNT_TYPE_LABELS[account.type]}</span>
+      <div className="flex items-center justify-end gap-0.5 border-t border-gray-100 bg-gray-50/60 px-3 py-1 dark:border-[#2a2a28] dark:bg-[#151513]">
+        <div className="mr-auto flex min-w-0 items-center gap-1 text-[10px] font-medium text-gray-400 dark:text-gray-500">
+          <span className="truncate">{account.type === "CREDIT_CARD" ? "Crédito" : "Cuenta"}</span>
           <span aria-hidden>·</span>
-          <span>{account.currency}</span>
-          <span aria-hidden>·</span>
-          <span>Inicial {fmt(account.initialBalance, account.currency)}</span>
-          {account.isArchived && (
-            <>
-              <span aria-hidden>·</span>
-              <span>Archivada</span>
-            </>
-          )}
+          <span className="truncate">{account.excludeFromTotal ? "Fuera del total" : "Incluida en total"}</span>
         </div>
-      </div>
-
-      <div className="flex min-w-0 flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-2">
-        <p
-          className="max-w-28 truncate text-sm font-semibold tabular-nums sm:min-w-28 sm:text-right"
-          style={{ color }}
-        >
-          {fmt(account.currentBalance, account.currency)}
-        </p>
         <div className="flex shrink-0 items-center gap-0.5">
           <button
             onClick={onMembers}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-300"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title="Miembros"
             aria-label={`Miembros de ${account.name}`}
           >
@@ -724,7 +729,7 @@ function AccountCard({
           </button>
           <button
             onClick={onEdit}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-300"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title="Editar"
             aria-label={`Editar ${account.name}`}
           >
@@ -732,7 +737,7 @@ function AccountCard({
           </button>
           <button
             onClick={onArchive}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-300"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title={account.isArchived ? "Desarchivar" : "Archivar"}
             aria-label={`${account.isArchived ? "Desarchivar" : "Archivar"} ${account.name}`}
           >
@@ -744,7 +749,7 @@ function AccountCard({
           </button>
           <button
             onClick={onDelete}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:text-gray-400 dark:hover:bg-rose-950/20"
             title="Eliminar"
             aria-label={`Eliminar ${account.name}`}
           >
@@ -763,6 +768,11 @@ export default function AccountsPage() {
   const [sheet, setSheet] = useState<"create" | AccountDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AccountDto | null>(null);
   const [membersTarget, setMembersTarget] = useState<AccountDto | null>(null);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"ALL" | AccountDto["type"]>(
+    "ALL",
+  );
+  const [sortBy, setSortBy] = useState<"NAME" | "BALANCE">("NAME");
 
   const { data, isLoading } = useQuery({
     queryKey: ["accounts"],
@@ -770,10 +780,25 @@ export default function AccountsPage() {
   });
 
   const accounts = data?.data ?? [];
-  const active = accounts.filter((a) => !a.isArchived);
-  const archived = accounts.filter((a) => a.isArchived);
-  const included = active.filter((a) => !a.excludeFromTotal);
-  const totals = balanceTotals(included);
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleAccounts = [...accounts]
+    .filter((account) => {
+      const matchesType = typeFilter === "ALL" || account.type === typeFilter;
+      const matchesSearch =
+        !normalizedSearch ||
+        [account.name, account.currency, ACCOUNT_TYPE_LABELS[account.type]]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedSearch);
+      return matchesType && matchesSearch;
+    })
+    .sort((a, b) =>
+      sortBy === "BALANCE"
+        ? b.currentBalance - a.currentBalance
+        : a.name.localeCompare(b.name, "es", { sensitivity: "base" }),
+    );
+  const active = visibleAccounts.filter((a) => !a.isArchived);
+  const archived = visibleAccounts.filter((a) => a.isArchived);
 
   const archiveMutation = useMutation({
     mutationFn: ({
@@ -809,15 +834,20 @@ export default function AccountsPage() {
   });
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 pb-20">
-      <div className="flex items-center justify-between mb-6">
+    <div className="mx-auto max-w-2xl px-4 py-6 pb-20">
+      <div className="mb-4">
         <PageHeader title="Cuentas" className="flex items-center gap-2" />
+        <p className="ml-10 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+          Gestiona todas tus cuentas y saldos
+        </p>
+      </div>
+      <div className="mb-4">
         <button
           onClick={() => setSheet("create")}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
         >
           <Plus size={14} />
-          Nueva
+          Nueva Cuenta
         </button>
       </div>
 
@@ -843,36 +873,54 @@ export default function AccountsPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-5">
-          <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 dark:border-[#2a2a28] dark:bg-[#1a1a18]">
-            <div className="flex flex-wrap items-center justify-between gap-1">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-300">
-                Saldo de cuentas activas
-              </p>
-              <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
-                {included.length} incluidas · {active.length - included.length}{" "}
-                excluidas
-              </p>
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {totals.map(([currency, total]) => (
-                <span
-                  key={currency}
-                  className="rounded-lg bg-gray-50 px-2 py-1 text-xs font-semibold tabular-nums text-gray-700 dark:bg-[#252523] dark:text-gray-200"
-                >
-                  {fmt(total, currency)}
-                </span>
+        <div className="space-y-4">
+          <div className="space-y-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#2a2a28] dark:bg-[#1a1a18]">
+            <label className="relative block">
+              <Search
+                size={14}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar cuenta..."
+                className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-400 dark:border-[#323230] dark:bg-[#121211] dark:text-gray-100"
+              />
+            </label>
+            <select
+              value={typeFilter}
+              onChange={(event) =>
+                setTypeFilter(event.target.value as "ALL" | AccountDto["type"])
+              }
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition-colors focus:border-emerald-400 dark:border-[#323230] dark:bg-[#121211] dark:text-gray-200"
+            >
+              <option value="ALL">Todos los tipos</option>
+              {ACCOUNT_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
               ))}
-              {totals.length === 0 && (
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  Ninguna cuenta incluida en el total
-                </span>
-              )}
-            </div>
+            </select>
+            <select
+              value={sortBy}
+              onChange={(event) =>
+                setSortBy(event.target.value as "NAME" | "BALANCE")
+              }
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition-colors focus:border-emerald-400 dark:border-[#323230] dark:bg-[#121211] dark:text-gray-200"
+            >
+              <option value="NAME">Nombre de la cuenta</option>
+              <option value="BALANCE">Mayor saldo</option>
+            </select>
           </div>
 
+          {visibleAccounts.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-gray-200 px-4 py-10 text-center text-sm text-gray-400 dark:border-[#323230] dark:text-gray-500">
+              No hay cuentas con esos filtros
+            </div>
+          )}
+
           {active.length > 0 && (
-            <section className="space-y-1.5">
+            <section className="space-y-2">
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Activas · {active.length}
               </p>
