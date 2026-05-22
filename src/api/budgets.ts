@@ -11,7 +11,8 @@ export interface BudgetDto {
 }
 
 export const budgetsApi = {
-  list: () => apiClient.get<BudgetDto[]>('/budgets').then((r) => r.data),
+  list: (period?: { year: number; month: number }) =>
+    apiClient.get<BudgetDto[]>('/budgets', { params: period }).then((r) => r.data),
 
   create: (categoryId: string, limitAmount: number) =>
     apiClient.post<string>('/budgets', { categoryId, limitAmount }).then((r) => r.data),
