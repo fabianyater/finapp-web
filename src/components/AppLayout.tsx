@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { accountsApi } from '@/api/accounts'
 import { categoriesApi } from '@/api/categories'
@@ -13,6 +13,7 @@ import { useState } from 'react'
 
 export default function AppLayout() {
   const { setMode } = useThemeStore()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const { data: profile } = useQuery({ queryKey: ['user', 'me'], queryFn: usersApi.getMe })
   const { data: accountsData } = useQuery({ queryKey: ['accounts'], queryFn: accountsApi.list })
@@ -22,6 +23,7 @@ export default function AppLayout() {
 
   const accounts = (accountsData?.data ?? []).filter((account) => !account.isArchived)
   const defaultAccount = accounts.find((account) => account.isDefault) ?? accounts[0]
+  const isHome = location.pathname === '/dashboard'
 
   function invalidateMovementData() {
     queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -43,12 +45,14 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
-      <CreateActionMenu
-        canCreateTransaction={!!defaultAccount}
-        canTransfer={accounts.length >= 2}
-        onTransaction={() => setShowTransaction(true)}
-        onTransfer={() => setShowTransfer(true)}
-      />
+      {isHome && (
+        <CreateActionMenu
+          canCreateTransaction={!!defaultAccount}
+          canTransfer={accounts.length >= 2}
+          onTransaction={() => setShowTransaction(true)}
+          onTransfer={() => setShowTransfer(true)}
+        />
+      )}
       {showTransaction && defaultAccount && (
         <AddTransactionModal
           accountId={defaultAccount.id}
