@@ -16,9 +16,12 @@ import type { EmojiStyle, Theme } from "emoji-picker-react";
 import {
   Archive,
   ArchiveRestore,
+  Eye,
+  EyeOff,
   Loader2,
   Pencil,
   Plus,
+  ReceiptText,
   Search,
   Trash2,
   UserMinus,
@@ -92,10 +95,6 @@ function fmt(amount: number, currency = "COP") {
 function resolveIcon(key?: string) {
   if (!key) return "💰";
   return KEY_TO_ICON[key] ?? key;
-}
-
-function initial(name: string) {
-  return name.trim().charAt(0).toUpperCase() || "?";
 }
 
 // ── form schema ───────────────────────────────────────────────────────────────
@@ -234,7 +233,35 @@ function AccountSheet({
           className="space-y-4 px-5 pb-8 pt-5"
         >
           <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3 dark:border-[#2a2a28] dark:bg-[#151513]">
-            <div className="flex items-start gap-3">
+            <label className={labelCls}>Tipo</label>
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-3 gap-1 rounded-xl bg-white p-1 shadow-sm dark:bg-[#252523]">
+                  {ACCOUNT_TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => field.onChange(t.value)}
+                      className={cn(
+                        "h-9 rounded-lg text-xs font-semibold transition-colors",
+                        field.value === t.value
+                          ? "bg-emerald-600 text-white shadow-sm"
+                          : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-[#30302d]",
+                      )}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3 dark:border-[#2a2a28] dark:bg-[#151513]">
+            <label className={labelCls}>Nombre</label>
+            <div className="flex items-center gap-3">
               <Controller
                 name="icon"
                 control={control}
@@ -250,7 +277,6 @@ function AccountSheet({
                 )}
               />
               <div className="min-w-0 flex-1">
-                <label className={labelCls}>Nombre</label>
                 <input
                   {...register("name")}
                   placeholder="Billetera, banco, tarjeta..."
@@ -262,33 +288,6 @@ function AccountSheet({
                   </p>
                 )}
               </div>
-            </div>
-
-            <div className="mt-3">
-              <label className={labelCls}>Tipo</label>
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => (
-                  <div className="grid grid-cols-3 gap-1 rounded-xl bg-white p-1 shadow-sm dark:bg-[#252523]">
-                    {ACCOUNT_TYPES.map((t) => (
-                      <button
-                        key={t.value}
-                        type="button"
-                        onClick={() => field.onChange(t.value)}
-                        className={cn(
-                          "h-9 rounded-lg text-xs font-semibold transition-colors",
-                          field.value === t.value
-                            ? "bg-emerald-600 text-white shadow-sm"
-                            : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-[#30302d]",
-                        )}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              />
             </div>
           </div>
 
@@ -622,7 +621,12 @@ function MembersSheet({
                 {members.map((m) => (
                   <div
                     key={m.userId}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#252523]"
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border p-3",
+                      m.owner
+                        ? "border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/70 dark:bg-emerald-950/15"
+                        : "border-transparent bg-gray-50 dark:bg-[#252523]",
+                    )}
                   >
                     <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-xs font-bold text-emerald-700 dark:text-emerald-400 flex-shrink-0">
                       {initials(m.name)}
@@ -706,7 +710,7 @@ function AccountCard({
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
           style={{ backgroundColor: `${color}18`, color }}
         >
-          {initial(account.name)}
+          {resolveIcon(account.icon)}
         </div>
 
         <div className={cn("min-w-0 flex-1", account.isDefault && "pr-16")}>
@@ -732,13 +736,38 @@ function AccountCard({
 
       <div className="mt-auto flex items-end justify-between gap-2 border-t border-gray-100 pt-2 dark:border-[#2a2a28]">
         <div className="flex min-w-0 flex-wrap gap-1 text-[10px] font-medium text-gray-500 dark:text-gray-400">
-          <span className="rounded-full bg-gray-50 px-1.5 py-1 dark:bg-[#252523]">
-            {transactionCount === undefined
-              ? "Cargando txns"
-              : `${transactionCount} txn${transactionCount === 1 ? "" : "s"}`}
+          <span
+            className="inline-flex h-6 items-center gap-1 rounded-full bg-gray-50 px-1.5 dark:bg-[#252523]"
+            title={
+              transactionCount === undefined
+                ? "Cargando transacciones"
+                : `${transactionCount} transaccion${transactionCount === 1 ? "" : "es"}`
+            }
+            aria-label={
+              transactionCount === undefined
+                ? "Cargando transacciones"
+                : `${transactionCount} transaccion${transactionCount === 1 ? "" : "es"}`
+            }
+          >
+            <ReceiptText size={11} />
+            <span className="tabular-nums">
+              {transactionCount === undefined ? "..." : transactionCount}
+            </span>
           </span>
-          <span className="rounded-full bg-gray-50 px-1.5 py-1 dark:bg-[#252523]">
-            {account.excludeFromTotal ? "Excluida" : "Incluida"}
+          <span
+            className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-50 dark:bg-[#252523]"
+            title={account.excludeFromTotal ? "Excluida del total" : "Incluida en el total"}
+            aria-label={
+              account.excludeFromTotal
+                ? "Excluida del total"
+                : "Incluida en el total"
+            }
+          >
+            {account.excludeFromTotal ? (
+              <EyeOff size={11} />
+            ) : (
+              <Eye size={11} />
+            )}
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-0.5">
@@ -810,7 +839,12 @@ function AccountAccessSummary({ members }: { members?: MemberDto[] }) {
       {members.map((member) => (
         <span
           key={member.userId}
-          className="inline-flex max-w-full items-center gap-1 rounded-full bg-gray-50 px-1.5 py-1 dark:bg-[#252523]"
+          className={cn(
+            "inline-flex max-w-full items-center gap-1 rounded-full border px-1.5 py-1",
+            member.owner
+              ? "border-emerald-300 bg-emerald-50/80 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/25 dark:text-emerald-200"
+              : "border-transparent bg-gray-50 dark:bg-[#252523]",
+          )}
           title={member.email}
         >
           <span className="max-w-24 truncate">{member.name}</span>

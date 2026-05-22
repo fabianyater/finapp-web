@@ -1,4 +1,11 @@
 export const ICON_MAP: Record<string, string> = {
+  "credit-card": "💳",
+  bank: "🏦",
+  cash: "💵",
+  coin: "🪙",
+  briefcase: "💼",
+  shopping: "🛍️",
+  phone: "📱",
   "currency-dollar": "💰",
   laptop: "💻",
   utensils: "🍽️",

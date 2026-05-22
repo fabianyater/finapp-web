@@ -2,8 +2,8 @@ import { type AccountDto } from "@/api/accounts";
 import NotificationBell from "@/components/NotificationBell";
 import UserMenu from "@/components/UserMenu";
 import { cn } from "@/lib/utils";
-import { resolveColor } from "../utils/colorUtils";
-import { ChevronDown, Plus, Wallet } from "lucide-react";
+import { resolveColor, resolveIcon } from "../utils/colorUtils";
+import { ChevronDown, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -54,7 +54,7 @@ function AccountMenu({
         onClick={() => setOpen((value) => !value)}
         className="flex h-10 min-w-0 max-w-[15rem] items-center gap-2 rounded-2xl border border-gray-200 bg-white px-2.5 text-left shadow-sm transition-colors hover:border-gray-300 dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:hover:border-[#3a3a38]"
       >
-        <AccountDot color={selected?.color} />
+        <AccountDot color={selected?.color} icon={selected?.icon} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
             Cuenta
@@ -85,7 +85,7 @@ function AccountMenu({
                       : "hover:bg-gray-50 dark:hover:bg-[#252523]",
                   )}
                 >
-                  <AccountDot color={account.color} />
+                  <AccountDot color={account.color} icon={account.icon} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-gray-800 dark:text-gray-100">
                       {account.name}
@@ -113,13 +113,13 @@ function AccountMenu({
   );
 }
 
-function AccountDot({ color }: { color?: string }) {
+function AccountDot({ color, icon }: { color?: string; icon?: string }) {
   return (
     <span
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
-      style={{ backgroundColor: resolveColor(color) }}
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-sm shadow-sm"
+      style={{ backgroundColor: `${resolveColor(color)}24` }}
     >
-      <Wallet size={14} />
+      {resolveIcon(icon)}
     </span>
   );
 }
