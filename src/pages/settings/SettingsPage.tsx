@@ -1,13 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { toast } from '@/store/toast'
+import { accountsApi, type AccountDto } from '@/api/accounts'
+import { transactionsApi } from '@/api/transactions'
 import { usersApi } from '@/api/users'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
-import { ChevronDown, ChevronRight, CreditCard, Loader2, Sun, Moon, Monitor, Wallet, Tag, Hash, RepeatIcon, PiggyBank } from 'lucide-react'
+import { CalendarRange, ChevronDown, ChevronRight, CreditCard, Download, Loader2, Sun, Moon, Monitor, Wallet, Tag, Hash, RepeatIcon, PiggyBank, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 
@@ -49,6 +51,30 @@ const THEMES: { value: ThemeMode; label: string; icon: React.ElementType }[] = [
   { value: 'system', label: 'Sistema', icon: Monitor },
 ]
 
+type TransactionExportType = 'EXPENSE' | 'INCOME' | 'TRANSFER'
+
+const TRANSACTION_EXPORT_TYPES: {
+  value: TransactionExportType
+  label: string
+  activeClass: string
+}[] = [
+  {
+    value: 'EXPENSE',
+    label: 'Gastos',
+    activeClass: 'bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
+  },
+  {
+    value: 'INCOME',
+    label: 'Ingresos',
+    activeClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
+  },
+  {
+    value: 'TRANSFER',
+    label: 'Transferencias',
+    activeClass: 'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400',
+  },
+]
+
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -83,6 +109,240 @@ function SelectWrapper({ children }: { children: React.ReactNode }) {
 
 // ── Main page ──────────────────────────────────────────────────────────────
 
+function startOfDayIso(date: string) {
+  return date ? new Date(`${date}T00:00:00`).toISOString() : undefined
+}
+
+function endOfDayIso(date: string) {
+  return date ? new Date(`${date}T23:59:59.999`).toISOString() : undefined
+}
+
+function TransactionExportSection({
+  accounts,
+  accountsLoading,
+  cardCls,
+  cardHeaderCls,
+  saveBtnCls,
+}: {
+  accounts: AccountDto[]
+  accountsLoading: boolean
+  cardCls: string
+  cardHeaderCls: string
+  saveBtnCls: string
+}) {
+  const [accountScope, setAccountScope] = useState<'ALL' | 'SELECTED'>('ALL')
+  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([])
+  const [selectedTypes, setSelectedTypes] = useState<TransactionExportType[]>(
+    TRANSACTION_EXPORT_TYPES.map(({ value }) => value),
+  )
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [search, setSearch] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
+
+  function toggleAccount(accountId: string) {
+    setSelectedAccountIds((ids) =>
+      ids.includes(accountId) ? ids.filter((id) => id !== accountId) : [...ids, accountId],
+    )
+  }
+
+  function toggleType(type: TransactionExportType) {
+    setSelectedTypes((types) =>
+      types.includes(type) ? types.filter((value) => value !== type) : [...types, type],
+    )
+  }
+
+  async function handleExport() {
+    if (
+      isExporting ||
+      selectedTypes.length === 0 ||
+      (accountScope === 'SELECTED' && selectedAccountIds.length === 0)
+    ) {
+      return
+    }
+
+    setIsExporting(true)
+    try {
+      const blob = await transactionsApi.exportCsv({
+        accountIds: accountScope === 'SELECTED' ? selectedAccountIds : undefined,
+        types:
+          selectedTypes.length === TRANSACTION_EXPORT_TYPES.length ? undefined : selectedTypes,
+        dateFrom: startOfDayIso(dateFrom),
+        dateTo: endOfDayIso(dateTo),
+        search: search.trim() || undefined,
+      })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'transactions.csv'
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error('No se pudo exportar el CSV')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const exportDisabled =
+    isExporting ||
+    accountsLoading ||
+    accounts.length === 0 ||
+    selectedTypes.length === 0 ||
+    (accountScope === 'SELECTED' && selectedAccountIds.length === 0)
+
+  return (
+    <div className={cardCls}>
+      <div className={cardHeaderCls}>
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Datos</h2>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          Exporta transacciones con filtros antes de descargar el CSV
+        </p>
+      </div>
+
+      <div className="px-6 py-5 space-y-5">
+        <div>
+          <FieldLabel>Cuentas</FieldLabel>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'ALL' as const, label: 'Todas las cuentas' },
+              { value: 'SELECTED' as const, label: 'Elegir cuentas' },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setAccountScope(value)}
+                className={cn(
+                  'rounded-lg border px-3 py-2.5 text-xs font-medium transition-colors',
+                  accountScope === value
+                    ? 'border-emerald-400 bg-emerald-50 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-950/30 dark:text-emerald-400'
+                    : 'border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-[#3a3a38] dark:text-gray-400 dark:hover:bg-[#252523]',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {accountScope === 'SELECTED' && (
+            <div className="mt-2 rounded-lg border border-gray-200 dark:border-[#3a3a38] divide-y divide-gray-100 dark:divide-[#2a2a28] overflow-hidden">
+              {accountsLoading ? (
+                <div className="h-12 bg-gray-100 animate-pulse dark:bg-[#252523]" />
+              ) : accounts.length === 0 ? (
+                <p className="px-3 py-3 text-xs text-gray-400 dark:text-gray-500">
+                  No hay cuentas para exportar.
+                </p>
+              ) : (
+                accounts.map((account) => (
+                  <label
+                    key={account.id}
+                    className="flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-[#252523]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedAccountIds.includes(account.id)}
+                      onChange={() => toggleAccount(account.id)}
+                      className="h-4 w-4 rounded border-gray-300 text-emerald-600 accent-emerald-600"
+                    />
+                    <span className="min-w-0 flex-1 truncate">{account.name}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{account.currency}</span>
+                  </label>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <FieldLabel>Tipos de transaccion</FieldLabel>
+          <div className="flex flex-wrap gap-1.5">
+            {TRANSACTION_EXPORT_TYPES.map(({ value, label, activeClass }) => {
+              const active = selectedTypes.includes(value)
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => toggleType(value)}
+                  aria-pressed={active}
+                  className={cn(
+                    'rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+                    active
+                      ? activeClass
+                      : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-[#252523]',
+                  )}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+          {selectedTypes.length === 0 && (
+            <p className="mt-1.5 text-xs text-rose-500 dark:text-rose-400">
+              Selecciona al menos un tipo de transaccion.
+            </p>
+          )}
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          <label className="flex min-w-0 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-[#3a3a38] dark:bg-[#252523]">
+            <CalendarRange size={14} className="shrink-0 text-gray-400 dark:text-gray-500" />
+            <span className="sr-only">Desde</span>
+            <input
+              type="date"
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={(event) => setDateFrom(event.target.value)}
+              className="min-w-0 flex-1 bg-transparent text-sm text-gray-700 outline-none dark:text-gray-200"
+            />
+          </label>
+          <label className="flex min-w-0 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-[#3a3a38] dark:bg-[#252523]">
+            <CalendarRange size={14} className="shrink-0 text-gray-400 dark:text-gray-500" />
+            <span className="sr-only">Hasta</span>
+            <input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(event) => setDateTo(event.target.value)}
+              className="min-w-0 flex-1 bg-transparent text-sm text-gray-700 outline-none dark:text-gray-200"
+            />
+          </label>
+        </div>
+
+        <label className="relative block">
+          <Search
+            size={14}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+          />
+          <span className="sr-only">Buscar transacciones</span>
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por texto antes de exportar"
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-3 text-sm text-gray-800 outline-none transition-colors placeholder:text-gray-300 focus:border-emerald-500 dark:border-[#3a3a38] dark:bg-[#252523] dark:text-gray-100 dark:placeholder:text-gray-600"
+          />
+        </label>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exportDisabled}
+            className={saveBtnCls}
+          >
+            {isExporting ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Download size={14} />
+            )}
+            {isExporting ? 'Exportando...' : 'Exportar CSV'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const queryClient = useQueryClient()
   const { mode: themeMode, setMode: setTheme } = useThemeStore()
@@ -90,6 +350,10 @@ export default function SettingsPage() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user', 'me'],
     queryFn: usersApi.getMe,
+  })
+  const { data: accountsData, isLoading: accountsLoading } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: accountsApi.list,
   })
 
   // ── Preferences form ──────────────────────────────────────────────────
@@ -219,6 +483,14 @@ export default function SettingsPage() {
         </div>
 
         {/* ── Preferencias ────────────────────────────────────── */}
+        <TransactionExportSection
+          accounts={accountsData?.data ?? []}
+          accountsLoading={accountsLoading}
+          cardCls={cardCls}
+          cardHeaderCls={cardHeaderCls}
+          saveBtnCls={saveBtnCls}
+        />
+
         <div className={cardCls}>
           <div className={cardHeaderCls}>
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Preferencias</h2>

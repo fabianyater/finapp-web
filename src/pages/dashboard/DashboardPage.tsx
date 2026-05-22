@@ -201,7 +201,6 @@ export default function DashboardPage() {
       <TransactionSection
         sectionRef={txSectionRef}
         showDeleted={dashState.showDeleted}
-        isExporting={dashState.isExporting}
         deletedLoading={dashData.deletedLoading}
         deletedTxs={dashData.deletedTxs}
         txLoading={dashData.txLoading}
@@ -211,7 +210,6 @@ export default function DashboardPage() {
         categoryMap={categoryMap}
         onSetShowDeleted={dashState.setShowDeleted}
         onOpenFullModal={dashState.openTxFullModal}
-        onExportCsv={dashState.handleExportCsv}
         onSelectTx={dashState.setSelectedTx}
         onSelectTransferTx={dashState.setSelectedTransferTx}
         onRestore={dashState.handleRestore}

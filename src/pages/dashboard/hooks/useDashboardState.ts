@@ -22,7 +22,6 @@ export function useDashboardState({
   const [selectedTransferTx, setSelectedTransferTx] = useState<TransactionListDto | null>(null);
   const [showTransaction, setShowTransaction] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const [showTxFullModal, setShowTxFullModal] = useState(false);
   const [txFullModalCategoryId, setTxFullModalCategoryId] = useState<string | null>(null);
 
@@ -42,26 +41,6 @@ export function useDashboardState({
   function closeTxFullModal() {
     setShowTxFullModal(false);
     setTxFullModalCategoryId(null);
-  }
-
-  async function handleExportCsv() {
-    if (!selectedAccountId || isExporting) return;
-    setIsExporting(true);
-    try {
-      const blob = await transactionsApi.exportCsv({
-        accountIds: [selectedAccountId],
-        dateFrom,
-        dateTo,
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "transactions.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setIsExporting(false);
-    }
   }
 
   function handleTransferSuccess() {
@@ -147,8 +126,6 @@ export function useDashboardState({
     setShowTransaction,
     showTransfer,
     setShowTransfer,
-    isExporting,
-    handleExportCsv,
     showTxFullModal,
     txFullModalCategoryId,
     openTxFullModal,

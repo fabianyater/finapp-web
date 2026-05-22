@@ -12,7 +12,6 @@ import TransactionSectionHeader from "./TransactionSectionHeader";
 interface TransactionSectionProps {
   sectionRef: React.RefObject<HTMLDivElement | null>;
   showDeleted: boolean;
-  isExporting: boolean;
   deletedLoading: boolean;
   deletedTxs: DeletedTransactionDto[];
   txLoading: boolean;
@@ -22,7 +21,6 @@ interface TransactionSectionProps {
   categoryMap: Map<string, CategoryDto>;
   onSetShowDeleted: (v: boolean) => void;
   onOpenFullModal: (categoryId?: string | null) => void;
-  onExportCsv: () => void;
   onSelectTx: (tx: TransactionListDto) => void;
   onSelectTransferTx: (tx: TransactionListDto) => void;
   onRestore: (tx: DeletedTransactionDto) => void;
@@ -31,7 +29,6 @@ interface TransactionSectionProps {
 export default function TransactionSection({
   sectionRef,
   showDeleted,
-  isExporting,
   deletedLoading,
   deletedTxs,
   txLoading,
@@ -41,7 +38,6 @@ export default function TransactionSection({
   categoryMap,
   onSetShowDeleted,
   onOpenFullModal,
-  onExportCsv,
   onSelectTx,
   onSelectTransferTx,
   onRestore,
@@ -51,13 +47,11 @@ export default function TransactionSection({
       <TransactionSectionHeader
         showDeleted={showDeleted}
         hasRecentTxs={recentTxs.length > 0}
-        isExporting={isExporting}
         onToggleDeleted={() => {
           if (!showDeleted) onSetShowDeleted(true);
           else onSetShowDeleted(false);
         }}
         onOpenFullModal={onOpenFullModal}
-        onExportCsv={onExportCsv}
       />
 
       {showDeleted ? (
