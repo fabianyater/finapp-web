@@ -120,14 +120,10 @@ function endOfDayIso(date: string) {
 function TransactionExportSection({
   accounts,
   accountsLoading,
-  cardCls,
-  cardHeaderCls,
   saveBtnCls,
 }: {
   accounts: AccountDto[]
   accountsLoading: boolean
-  cardCls: string
-  cardHeaderCls: string
   saveBtnCls: string
 }) {
   const [accountScope, setAccountScope] = useState<'ALL' | 'SELECTED'>('ALL')
@@ -192,15 +188,15 @@ function TransactionExportSection({
     (accountScope === 'SELECTED' && selectedAccountIds.length === 0)
 
   return (
-    <div className={cardCls}>
-      <div className={cardHeaderCls}>
+    <section className="border-t border-gray-100 px-1 py-6 dark:border-[#2a2a28]">
+      <div className="mb-5">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Datos</h2>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
           Exporta transacciones con filtros antes de descargar el CSV
         </p>
       </div>
 
-      <div className="px-6 py-5 space-y-5">
+      <div className="space-y-5">
         <div>
           <FieldLabel>Cuentas</FieldLabel>
           <div className="grid grid-cols-2 gap-2">
@@ -339,7 +335,7 @@ function TransactionExportSection({
           </button>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -397,12 +393,6 @@ export default function SettingsPage() {
   const selectCls =
     'w-full appearance-none bg-white dark:bg-[#252523] border border-gray-200 dark:border-[#3a3a38] rounded-lg px-4 py-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-colors pr-9'
 
-  const cardCls =
-    'bg-white dark:bg-[#1a1a18] border border-gray-200 dark:border-[#2a2a28] rounded-xl overflow-hidden'
-
-  const cardHeaderCls =
-    'px-6 py-5 border-b border-gray-100 dark:border-[#2a2a28]'
-
   const saveBtnCls =
     'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors flex items-center gap-2'
 
@@ -410,16 +400,16 @@ export default function SettingsPage() {
     <div className="px-4 py-6 max-w-2xl mx-auto pb-20">
       <PageHeader title="Configuración" back={false} />
 
-      <div className="space-y-4">
+      <div className="rounded-2xl border border-gray-100 bg-white px-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.04)] dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:shadow-none sm:px-6">
 
         {/* ── Tema ────────────────────────────────────────────── */}
-        <div className={cardCls}>
-          <div className={cardHeaderCls}>
+        <section className="py-6">
+          <div className="mb-4">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Apariencia</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Elige el tema de la aplicación</p>
           </div>
-          <div className="px-6 py-5">
-            <div className="flex gap-3">
+          <div>
+            <div className="grid grid-cols-3 gap-1 rounded-2xl bg-gray-50 p-1 dark:bg-[#151513]">
               {THEMES.map(({ value, label, icon: Icon }) => {
                 const active = themeMode === value
                 return (
@@ -427,10 +417,10 @@ export default function SettingsPage() {
                     key={value}
                     onClick={() => handleThemeChange(value)}
                     className={cn(
-                      'flex-1 flex flex-col items-center gap-2 py-4 rounded-xl border text-xs font-medium transition-all',
+                      'flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl text-xs font-medium transition-all',
                       active
-                        ? 'border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
-                        : 'border-gray-200 dark:border-[#3a3a38] text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-[#4a4a48] hover:bg-gray-50 dark:hover:bg-[#252523]',
+                        ? 'bg-white text-emerald-700 shadow-sm dark:bg-[#252523] dark:text-emerald-400'
+                        : 'text-gray-500 hover:bg-white/80 dark:text-gray-400 dark:hover:bg-[#252523]',
                     )}
                   >
                     <Icon size={18} strokeWidth={active ? 2.2 : 1.8} />
@@ -440,11 +430,11 @@ export default function SettingsPage() {
               })}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* ── Gestión ─────────────────────────────────────────── */}
-        <div className={cardCls}>
-          <div className={cardHeaderCls}>
+        <section className="border-t border-gray-100 py-6 dark:border-[#2a2a28]">
+          <div className="mb-3">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Gestión</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Administra tus cuentas y categorías</p>
           </div>
@@ -458,7 +448,7 @@ export default function SettingsPage() {
               <Link
                 key={to}
                 to={to}
-                className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-[#252523] transition-colors"
+                className="flex items-center justify-between rounded-xl px-1 py-3 hover:bg-gray-50 dark:hover:bg-[#252523] transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#252523] flex items-center justify-center">
@@ -473,19 +463,17 @@ export default function SettingsPage() {
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* ── Preferencias ────────────────────────────────────── */}
         <TransactionExportSection
           accounts={accountsData?.data ?? []}
           accountsLoading={accountsLoading}
-          cardCls={cardCls}
-          cardHeaderCls={cardHeaderCls}
           saveBtnCls={saveBtnCls}
         />
 
-        <div className={cardCls}>
-          <div className={cardHeaderCls}>
+        <section className="border-t border-gray-100 py-6 dark:border-[#2a2a28]">
+          <div className="mb-5">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Preferencias</h2>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
               Ajusta cómo se muestra la información
@@ -494,7 +482,7 @@ export default function SettingsPage() {
 
           <form
             onSubmit={submitPrefs((data) => prefsMutation.mutate(data))}
-            className="px-6 py-5 space-y-5"
+            className="space-y-5"
           >
             <div>
               <FieldLabel>Moneda</FieldLabel>
@@ -569,7 +557,7 @@ export default function SettingsPage() {
               </button>
             </div>
           </form>
-        </div>
+        </section>
 
       </div>
     </div>
