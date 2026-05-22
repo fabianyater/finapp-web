@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil, Trash2, Check, X, Tag, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { transactionsApi } from '@/api/transactions'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { toast } from '@/store/toast'
 import PageHeader from '@/components/PageHeader'
 
@@ -41,8 +42,8 @@ export default function TagsPage() {
       queryClient.invalidateQueries({ queryKey: ['transactions-all'] })
       toast.success(`Tag renombrado a #${newName}`)
       setEditingTag(null)
-    } catch {
-      toast.error('Error al renombrar el tag')
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'No se pudo renombrar el tag'))
     } finally {
       setSavingTag(null)
     }
@@ -58,8 +59,8 @@ export default function TagsPage() {
       queryClient.invalidateQueries({ queryKey: ['transactions-all'] })
       toast.success(`Tag #${tag} eliminado`)
       setConfirmDelete(null)
-    } catch {
-      toast.error('Error al eliminar el tag')
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el tag'))
     } finally {
       setDeletingTag(false as unknown as string)
       setDeletingTag(null)

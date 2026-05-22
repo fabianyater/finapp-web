@@ -1,6 +1,7 @@
 import { type AccountDto } from "@/api/accounts";
 import { transactionsApi } from "@/api/transactions";
 import { MoneyInput } from "@/components/MoneyInput";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/utils";
 import { fmt } from "../../utils/formatters";
 import { ArrowLeftRight, X } from "lucide-react";
@@ -52,8 +53,8 @@ export default function TransferModal({
         occurredOn: new Date(`${date}T12:00:00`).toISOString(),
       });
       onSuccess();
-    } catch {
-      setError("Error al crear la transferencia");
+    } catch (error) {
+      setError(getApiErrorMessage(error, "No se pudo crear la transferencia"));
     } finally {
       setLoading(false);
     }

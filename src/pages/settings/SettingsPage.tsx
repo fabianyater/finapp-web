@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { toast } from '@/store/toast'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { accountsApi, type AccountDto } from '@/api/accounts'
 import { transactionsApi } from '@/api/transactions'
 import { usersApi } from '@/api/users'
@@ -173,8 +174,8 @@ function TransactionExportSection({
       link.download = 'transactions.csv'
       link.click()
       URL.revokeObjectURL(url)
-    } catch {
-      toast.error('No se pudo exportar el CSV')
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'No se pudo exportar el CSV'))
     } finally {
       setIsExporting(false)
     }
@@ -371,8 +372,8 @@ export default function SettingsPage() {
       queryClient.setQueryData(['user', 'me'], updated)
       toast.success('Preferencias guardadas')
     },
-    onError: () => {
-      toast.error('No se pudieron guardar las preferencias')
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudieron guardar las preferencias'))
     },
   })
 

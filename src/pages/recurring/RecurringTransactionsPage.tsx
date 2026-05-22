@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm, Controller, type Resolver } from 'react-hook-form'
+import { useForm, Controller, type Resolver, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Plus, Pencil, Trash2, Loader2, X, Power, RepeatIcon, CalendarClock } from 'lucide-react'
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { recurringTransactionsApi } from '@/api/recurringTransactions'
 import { accountsApi } from '@/api/accounts'
 import { categoriesApi } from '@/api/categories'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { toast } from '@/store/toast'
 import PageHeader from '@/components/PageHeader'
 import { MoneyInput } from '@/components/MoneyInput'
@@ -83,7 +84,7 @@ function RecurringSheet({
     queryFn: () => categoriesApi.list(),
   })
 
-  const { register, handleSubmit, watch, control, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: {
       accountId: item?.accountId ?? '',
@@ -97,12 +98,12 @@ function RecurringSheet({
     },
   })
 
-  const selectedType = watch('type')
-  const selectedAccountId = watch('accountId')
+  const selectedType = useWatch({ control, name: 'type' })
+  const selectedAccountId = useWatch({ control, name: 'accountId' })
   const selectedAccountCurrency =
-    accounts.find((a: any) => a.id === selectedAccountId)?.currency ?? item?.currency ?? 'COP'
+    accounts.find((a) => a.id === selectedAccountId)?.currency ?? item?.currency ?? 'COP'
 
-  const filteredCategories = categories.filter((c: any) =>
+  const filteredCategories = categories.filter((c) =>
     selectedType === 'TRANSFER' ? false : c.type === selectedType
   )
 
@@ -123,7 +124,7 @@ function RecurringSheet({
       toast.success('Transacción recurrente creada')
       onClose()
     },
-    onError: () => toast.error('No se pudo crear la transacción recurrente'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo crear la transaccion recurrente')),
   })
 
   const updateMutation = useMutation({
@@ -143,7 +144,7 @@ function RecurringSheet({
       toast.success('Transacción recurrente actualizada')
       onClose()
     },
-    onError: () => toast.error('No se pudo actualizar la transacción recurrente'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo actualizar la transaccion recurrente')),
   })
 
   const isPending = createMutation.isPending || updateMutation.isPending
@@ -210,7 +211,7 @@ function RecurringSheet({
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
             >
               <option value="">Seleccionar cuenta</option>
-              {accounts.map((a: any) => (
+              {accounts.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </select>
@@ -226,7 +227,7 @@ function RecurringSheet({
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
               >
                 <option value="">Sin categoría</option>
-                {filteredCategories.map((c: any) => (
+                {filteredCategories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
@@ -356,12 +357,15 @@ export default function RecurringTransactionsPage() {
     accounts.find((a) => a.id === id)?.name ?? '–'
 
   const categoryName = (id: string | null) =>
-    id ? ((categories as any[]).find((c) => c.id === id)?.name ?? '–') : '–'
+    id ? (categories.find((c) => c.id === id)?.name ?? '–') : '–'
 
   const toggleMutation = useMutation({
     mutationFn: (id: string) => recurringTransactionsApi.toggle(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] }),
-    onError: () => toast.error('No se pudo cambiar el estado'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] })
+      toast.success('Estado de la transaccion recurrente actualizado')
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado')),
   })
 
   const deleteMutation = useMutation({
@@ -370,7 +374,7 @@ export default function RecurringTransactionsPage() {
       queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] })
       toast.success('Transacción recurrente eliminada')
     },
-    onError: () => toast.error('No se pudo eliminar la transacción recurrente'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo eliminar la transaccion recurrente')),
   })
 
   const active = items.filter((i) => i.active)

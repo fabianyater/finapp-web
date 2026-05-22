@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from '@/store/toast'
 import { usersApi } from '@/api/users'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { useAuthStore } from '@/store/auth'
 import { Loader2, Trash2 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
@@ -62,7 +63,7 @@ export default function ProfilePage() {
       queryClient.setQueryData(['user', 'me'], updated)
       toast.success('Perfil actualizado')
     },
-    onError: () => toast.error('No se pudo guardar el perfil'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo guardar el perfil')),
   })
 
   const handleLogout = () => {
@@ -78,7 +79,7 @@ export default function ProfilePage() {
       logout()
       navigate('/login')
     },
-    onError: () => toast.error('No se pudo eliminar la cuenta'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo eliminar la cuenta')),
   })
 
   const inputCls =

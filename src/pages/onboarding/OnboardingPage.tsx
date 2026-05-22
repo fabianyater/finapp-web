@@ -6,6 +6,7 @@ import {
   Sun, Moon, Monitor, ChevronDown, Check,
 } from 'lucide-react'
 import { toast } from '@/store/toast'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { usersApi } from '@/api/users'
 import { categoriesApi } from '@/api/categories'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
@@ -158,10 +159,8 @@ export default function OnboardingPage() {
       clearFlag()
       navigate('/dashboard')
     },
-    onError: () => {
-      toast.error('No se pudo completar el onboarding', {
-        description: 'Revisa la selección e inténtalo de nuevo. También puedes cambiarlo luego en Configuración.',
-      })
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo completar el onboarding'))
     },
   })
 

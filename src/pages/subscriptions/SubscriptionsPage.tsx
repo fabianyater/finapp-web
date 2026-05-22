@@ -22,6 +22,7 @@ import { MoneyInput } from '@/components/MoneyInput'
 import { accountsApi } from '@/api/accounts'
 import { categoriesApi, type CategoryDto } from '@/api/categories'
 import { subscriptionsApi } from '@/api/subscriptions'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { cn } from '@/lib/utils'
 import { toast } from '@/store/toast'
 import { SubscriptionBrandMark } from './SubscriptionBrandMark'
@@ -135,8 +136,11 @@ export default function SubscriptionsPage() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: SubscriptionStatus }) =>
       subscriptionsApi.changeStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscriptions'] }),
-    onError: () => toast.error('No se pudo cambiar el estado'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+      toast.success('Estado de la suscripcion actualizado')
+    },
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado')),
   })
 
   const deleteMutation = useMutation({
@@ -145,7 +149,7 @@ export default function SubscriptionsPage() {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
       toast.success('Suscripcion eliminada')
     },
-    onError: () => toast.error('No se pudo eliminar la suscripcion'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo eliminar la suscripcion')),
   })
 
   const active = items.filter((item) => item.status === 'ACTIVE')
@@ -525,7 +529,7 @@ function SubscriptionSheet({
       toast.success('Suscripcion creada')
       onClose()
     },
-    onError: () => toast.error('No se pudo crear la suscripcion'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo crear la suscripcion')),
   })
   const updateMutation = useMutation({
     mutationFn: (data: SubscriptionFormData) => subscriptionsApi.update(item!.id, payload(data)),
@@ -534,7 +538,7 @@ function SubscriptionSheet({
       toast.success('Suscripcion actualizada')
       onClose()
     },
-    onError: () => toast.error('No se pudo actualizar la suscripcion'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo actualizar la suscripcion')),
   })
 
   const pending = createMutation.isPending || updateMutation.isPending
@@ -653,7 +657,7 @@ function PaymentSheet({ item, onClose }: { item: Subscription; onClose: () => vo
       toast.success('Pago registrado')
       onClose()
     },
-    onError: () => toast.error('No se pudo registrar el pago'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo registrar el pago')),
   })
 
   return (

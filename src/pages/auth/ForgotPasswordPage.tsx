@@ -1,4 +1,5 @@
 import { authApi } from "@/api/auth";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -27,10 +28,8 @@ export default function ForgotPasswordPage() {
         description: "Si el email existe, te enviamos un enlace para recuperar el acceso.",
       });
     },
-    onError: () => {
-      toast.error("No se pudo enviar el correo", {
-        description: "Intenta de nuevo en unos minutos.",
-      });
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "No se pudo enviar el correo"));
     },
   });
 

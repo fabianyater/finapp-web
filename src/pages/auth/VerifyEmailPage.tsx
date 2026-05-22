@@ -1,4 +1,5 @@
 import { authApi } from "@/api/auth";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -39,10 +40,8 @@ export default function VerifyEmailPage() {
         description: "Si la cuenta necesita validacion, te enviamos un enlace.",
       });
     },
-    onError: () => {
-      toast.error("No se pudo enviar el correo", {
-        description: "Intenta de nuevo en unos minutos.",
-      });
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, "No se pudo enviar el correo"));
     },
   });
 

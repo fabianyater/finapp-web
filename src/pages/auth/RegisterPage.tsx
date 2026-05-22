@@ -7,6 +7,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff, TrendingUp, Sparkles, Tag, Lock, ArrowRight, Loader2 } from 'lucide-react'
 import { toast } from '@/store/toast'
 import { authApi } from '@/api/auth'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 
 const schema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
@@ -33,8 +34,8 @@ export default function RegisterPage() {
       localStorage.setItem('onboarding_pending', '1')
       navigate(`/verify-email?email=${encodeURIComponent(variables.email)}`)
     },
-    onError: () => {
-      toast.error('No se pudo crear la cuenta', { description: 'Intenta de nuevo o usa otro email.' })
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo crear la cuenta'))
     },
   })
 

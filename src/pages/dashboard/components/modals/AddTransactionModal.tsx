@@ -9,6 +9,7 @@ import {
 import { MoneyInput } from "@/components/MoneyInput";
 import TagInput from "@/components/TagInput";
 import CategoryPicker from "../CategoryPicker";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/utils";
 import { Sparkles, X } from "lucide-react";
 import { useState } from "react";
@@ -87,8 +88,8 @@ export default function AddTransactionModal({
         tags: tags.length > 0 ? tags : undefined,
       });
       onSuccess();
-    } catch {
-      setError("Error al crear la transacción");
+    } catch (error) {
+      setError(getApiErrorMessage(error, "No se pudo crear la transaccion"));
     } finally {
       setLoading(false);
     }

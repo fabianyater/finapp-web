@@ -3,7 +3,9 @@ import { categoriesApi, type CategoryDto } from '@/api/categories'
 import { usersApi } from '@/api/users'
 import { MoneyInput } from '@/components/MoneyInput'
 import PageHeader from '@/components/PageHeader'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { cn } from '@/lib/utils'
+import { toast } from '@/store/toast'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
@@ -141,6 +143,12 @@ export default function BudgetsPage() {
       setAdding(false)
       setNewLimit('')
       setNewCategoryId('')
+      toast.success(existing ? 'Presupuesto actualizado' : 'Presupuesto creado')
+    } catch (error) {
+      toast.error(getApiErrorMessage(
+        error,
+        existing ? 'No se pudo actualizar el presupuesto' : 'No se pudo crear el presupuesto',
+      ))
     } finally {
       setSavingId(null)
     }
@@ -152,6 +160,9 @@ export default function BudgetsPage() {
       await budgetsApi.remove(budget.id)
       await queryClient.invalidateQueries({ queryKey: ['budgets'] })
       setActionId(null)
+      toast.success('Presupuesto eliminado')
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el presupuesto'))
     } finally {
       setSavingId(null)
     }

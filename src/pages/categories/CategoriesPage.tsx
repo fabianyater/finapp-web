@@ -7,6 +7,7 @@ import type { EmojiStyle, Theme } from 'emoji-picker-react'
 import { Plus, Pencil, Trash2, Loader2, RotateCcw, X, ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { categoriesApi, type CategoryDto } from '@/api/categories'
+import { getApiErrorMessage } from '@/lib/apiErrors'
 import { toast } from '@/store/toast'
 import PageHeader from '@/components/PageHeader'
 
@@ -96,7 +97,7 @@ function CategorySheet({
       toast.success('Categoría creada')
       onClose()
     },
-    onError: () => toast.error('No se pudo crear la categoría'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo crear la categoria')),
   })
 
   const updateMutation = useMutation({
@@ -110,7 +111,7 @@ function CategorySheet({
       toast.success('Categoría actualizada')
       onClose()
     },
-    onError: () => toast.error('No se pudo actualizar la categoría'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo actualizar la categoria')),
   })
 
   const isPending = createMutation.isPending || updateMutation.isPending
@@ -439,7 +440,7 @@ export default function CategoriesPage() {
       setDeleteTarget(null)
       toast.success('Categoría eliminada')
     },
-    onError: () => toast.error('No se pudo eliminar la categoría'),
+    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo eliminar la categoria')),
   })
 
   const restoreMutation = useMutation({
@@ -450,9 +451,9 @@ export default function CategoriesPage() {
       setRestoringId(null)
       toast.success('Categoría restaurada')
     },
-    onError: () => {
+    onError: (error) => {
       setRestoringId(null)
-      toast.error('No se pudo restaurar la categoría')
+      toast.error(getApiErrorMessage(error, 'No se pudo restaurar la categoria'))
     },
   })
 

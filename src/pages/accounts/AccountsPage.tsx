@@ -1,6 +1,7 @@
 import { accountsApi, type AccountDto, type MemberDto } from "@/api/accounts";
 import { MoneyInput } from "@/components/MoneyInput";
 import PageHeader from "@/components/PageHeader";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/utils";
 import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +10,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import type { EmojiStyle, Theme } from "emoji-picker-react";
 import {
   Archive,
@@ -160,7 +160,8 @@ function AccountSheet({
       toast.success("Cuenta creada");
       onClose();
     },
-    onError: () => toast.error("No se pudo crear la cuenta"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo crear la cuenta")),
   });
 
   const updateMutation = useMutation({
@@ -179,7 +180,8 @@ function AccountSheet({
       toast.success("Cuenta actualizada");
       onClose();
     },
-    onError: () => toast.error("No se pudo actualizar la cuenta"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo actualizar la cuenta")),
   });
 
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -514,12 +516,8 @@ function MembersSheet({
       setEmail("");
       toast.success("Invitación enviada");
     },
-    onError: (err) => {
-      const msg = isAxiosError<{ message?: string }>(err)
-        ? err.response?.data?.message
-        : undefined;
-      toast.error(msg ?? "No se pudo invitar al usuario");
-    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo invitar al usuario")),
   });
 
   const removeMutation = useMutation({
@@ -532,7 +530,8 @@ function MembersSheet({
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       toast.success("Miembro eliminado");
     },
-    onError: () => toast.error("No se pudo eliminar el miembro"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo eliminar el miembro")),
   });
 
   function initials(name: string) {
@@ -901,7 +900,8 @@ export default function AccountsPage() {
         vars.isArchived ? "Cuenta desarchivada" : "Cuenta archivada",
       );
     },
-    onError: () => toast.error("No se pudo actualizar la cuenta"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo actualizar la cuenta")),
   });
 
   const deleteMutation = useMutation({
@@ -912,7 +912,8 @@ export default function AccountsPage() {
       setDeleteTarget(null);
       toast.success("Cuenta eliminada");
     },
-    onError: () => toast.error("No se pudo eliminar la cuenta"),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo eliminar la cuenta")),
   });
 
   return (

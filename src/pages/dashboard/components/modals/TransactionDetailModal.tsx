@@ -1,5 +1,6 @@
 import { type CategoryDto } from "@/api/categories";
 import { transactionsApi, type TransactionListDto } from "@/api/transactions";
+import { getApiErrorMessage } from "@/lib/apiErrors";
 import { ChevronLeft, X } from "lucide-react";
 import { useState } from "react";
 import TransactionDetailView from "./TransactionDetailView";
@@ -51,6 +52,8 @@ export default function TransactionDetailModal({
     try {
       await transactionsApi.remove(tx.accountId, tx.id);
       onDeleted();
+    } catch (error) {
+      setError(getApiErrorMessage(error, "No se pudo eliminar la transaccion"));
     } finally {
       setDeleting(false);
     }
@@ -74,8 +77,8 @@ export default function TransactionDetailModal({
         tags: tags.length > 0 ? tags : undefined,
       });
       onUpdated();
-    } catch {
-      setError("Error al guardar los cambios");
+    } catch (error) {
+      setError(getApiErrorMessage(error, "No se pudieron guardar los cambios"));
       setSaving(false);
     }
   }
