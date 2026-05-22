@@ -9,7 +9,7 @@ import { accountsApi, type AccountDto } from '@/api/accounts'
 import { transactionsApi } from '@/api/transactions'
 import { usersApi } from '@/api/users'
 import { useThemeStore, type ThemeMode } from '@/store/theme'
-import { CalendarRange, ChevronDown, ChevronRight, CreditCard, Download, Loader2, Sun, Moon, Monitor, Wallet, Tag, Hash, RepeatIcon, PiggyBank, Search } from 'lucide-react'
+import { CalendarRange, ChevronDown, ChevronRight, Download, Loader2, Sun, Moon, Monitor, Wallet, Tag, Hash, PiggyBank, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import PageHeader from '@/components/PageHeader'
 
@@ -454,13 +454,6 @@ export default function SettingsPage() {
               { to: '/categories', icon: Tag, label: 'Categorías', sub: 'Ver y gestionar tus categorías' },
               { to: '/tags', icon: Hash, label: 'Tags', sub: 'Renombrar y eliminar tags de transacciones' },
               { to: '/budgets', icon: PiggyBank, label: 'Presupuestos', sub: 'Límites mensuales por categoría' },
-              { to: '/subscriptions', icon: CreditCard, label: 'Suscripciones', sub: 'Cobros, pagos y recordatorios' },
-              {
-                to: '/recurring',
-                icon: RepeatIcon,
-                label: 'Recurrentes',
-                sub: 'Ver y gestionar transacciones recurrentes',
-              },
             ].map(({ to, icon: Icon, label, sub }) => (
               <Link
                 key={to}
