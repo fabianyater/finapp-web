@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { ArrowLeftRight, Plus, Receipt, X } from 'lucide-react'
+import { ArrowLeftRight, ChevronUp, Receipt } from 'lucide-react'
 import { useState } from 'react'
 
 export default function CreateActionMenu({
@@ -22,77 +22,90 @@ export default function CreateActionMenu({
           className="fade-in fixed inset-0 z-20 bg-black/10 backdrop-blur-[1px]"
         />
       )}
-      <div className="fixed bottom-24 right-4 z-30 sm:right-[max(1rem,calc((100vw-42rem)/2))]">
-        {open && (
-          <div className="fade-in absolute bottom-16 right-0 w-60 overflow-hidden rounded-2xl border border-gray-200/90 bg-white/95 p-1.5 shadow-[0_18px_60px_rgba(17,24,39,0.2)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#1a1a18]/95">
-            <ActionButton
-              icon={Receipt}
-              title="Transaccion"
-              detail="Gasto o ingreso"
-              onClick={() => {
-                setOpen(false)
-                onTransaction()
-              }}
-            />
-            <ActionButton
-              icon={ArrowLeftRight}
-              title="Transferencia"
-              detail={canTransfer ? 'Entre tus cuentas' : 'Necesitas otra cuenta'}
-              disabled={!canTransfer}
-              onClick={() => {
-                setOpen(false)
-                onTransfer()
-              }}
-            />
-          </div>
-        )}
+      <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2">
+        <div className="pointer-events-none absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-2">
+          <SatelliteAction
+            open={open}
+            icon={Receipt}
+            label="Txn"
+            title="Nueva transaccion"
+            delayClass="delay-75"
+            onClick={() => {
+              setOpen(false)
+              onTransaction()
+            }}
+          />
+          <SatelliteAction
+            open={open}
+            icon={ArrowLeftRight}
+            label="Transfer"
+            title={canTransfer ? 'Nueva transferencia' : 'Necesitas otra cuenta'}
+            delayClass="delay-150"
+            disabled={!canTransfer}
+            onClick={() => {
+              setOpen(false)
+              onTransfer()
+            }}
+          />
+        </div>
         <button
           aria-expanded={open}
-          aria-label={open ? 'Cerrar acciones' : 'Nueva transaccion'}
+          aria-label={open ? 'Cerrar acciones' : 'Abrir acciones'}
           onClick={() => setOpen((value) => !value)}
-          className="group flex h-14 items-center gap-2 rounded-2xl border border-emerald-800 bg-emerald-700 pl-3 pr-4 text-white shadow-[0_18px_44px_rgba(16,90,52,0.32)] transition-all hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_22px_50px_rgba(16,90,52,0.36)] dark:border-white dark:bg-white dark:text-[#1a1a18]"
+          className="group flex h-14 w-14 items-center justify-center rounded-full border-[5px] border-[#f3f6f1] bg-emerald-700 text-white shadow-[0_16px_38px_rgba(16,90,52,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_20px_46px_rgba(16,90,52,0.38)] dark:border-[#111110] dark:bg-white dark:text-[#1a1a18]"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 dark:bg-black/10">
-            {open ? <X size={18} /> : <Plus size={19} strokeWidth={2.6} />}
-          </span>
-          <span className="text-sm font-semibold">Nueva</span>
+          <ChevronUp
+            size={21}
+            strokeWidth={2.8}
+            className={cn(
+              'transition-transform duration-300 ease-out',
+              open ? 'rotate-180' : 'rotate-0',
+            )}
+          />
         </button>
       </div>
     </>
   )
 }
 
-function ActionButton({
+function SatelliteAction({
+  open,
   icon: Icon,
+  label,
   title,
-  detail,
+  delayClass,
   disabled,
   onClick,
 }: {
+  open: boolean
   icon: typeof Receipt
+  label: string
   title: string
-  detail: string
+  delayClass: string
   disabled?: boolean
   onClick: () => void
 }) {
   return (
     <button
+      aria-label={title}
+      title={title}
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors',
+        'pointer-events-auto flex h-12 items-center gap-2 rounded-2xl border bg-white/95 px-3 text-sm font-semibold shadow-[0_14px_34px_rgba(16,40,27,0.2)] backdrop-blur transition-[opacity,transform,border-color,color,background-color] duration-300 ease-out dark:bg-[#1a1a18]/95',
+        delayClass,
+        open
+          ? 'translate-y-0 scale-100 opacity-100'
+          : 'pointer-events-none translate-y-5 scale-90 opacity-0',
         disabled
-          ? 'cursor-not-allowed opacity-45'
-          : 'hover:bg-gray-50 dark:hover:bg-[#252523]',
+          ? 'cursor-not-allowed border-gray-200 text-gray-300 dark:border-[#2a2a28] dark:text-gray-600'
+          : 'border-gray-200 text-gray-700 hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-700 dark:border-[#2a2a28] dark:text-gray-100 dark:hover:border-emerald-700 dark:hover:text-emerald-300',
       )}
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700 dark:bg-[#252523] dark:text-gray-200">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition-colors dark:bg-[#252523] dark:text-gray-200">
         <Icon size={16} />
       </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</span>
-        <span className="block text-xs text-gray-400 dark:text-gray-500">{detail}</span>
-      </span>
+      <span>{label}</span>
     </button>
   )
 }

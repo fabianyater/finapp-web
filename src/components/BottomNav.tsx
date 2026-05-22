@@ -5,8 +5,8 @@ import { NavLink, useLocation } from 'react-router-dom'
 const items = [
   { to: '/dashboard', label: 'Inicio', icon: Home },
   { to: '/recurring', label: 'Recurrentes', icon: CalendarClock },
-  { to: '/subscriptions', label: 'Sus', icon: WalletCards },
-  { to: '/settings', label: 'Config', icon: Settings },
+  { to: '/subscriptions', label: 'Suscripciones', icon: WalletCards },
+  { to: '/settings', label: 'Configuración', icon: Settings },
 ]
 
 export default function BottomNav() {
