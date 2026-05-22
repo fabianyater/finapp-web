@@ -3,6 +3,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/Toaster";
 import { queryClient } from "@/lib/queryClient";
 import AccountsPage from "@/pages/accounts/AccountsPage";
+import AdminMetricsPage from "@/pages/admin/AdminMetricsPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -38,6 +39,7 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/accounts" element={<AccountsPage />} />
+              <Route path="/admin/metrics" element={<AdminMetricsPage />} />
               <Route path="/categories" element={<CategoriesPage />} />
               <Route
                 path="/recurring"

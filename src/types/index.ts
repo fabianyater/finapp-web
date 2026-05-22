@@ -274,3 +274,27 @@ export interface PageParams {
   direction?: 'ASC' | 'DESC'
   search?: string
 }
+
+export interface AdminMetricsTotals {
+  users: number
+  verifiedUsers: number
+  accounts: number
+  activeTransactions: number
+  deletedTransactions: number
+  recurringTransactions: number
+  activeRecurringTransactions: number
+  subscriptions: number
+  activeSubscriptions: number
+}
+
+export interface AdminMetricsActivityPoint {
+  day: string
+  newUsers: number
+  transactions: number
+}
+
+export interface AdminMetrics {
+  generatedAt: string
+  totals: AdminMetricsTotals
+  activity: AdminMetricsActivityPoint[]
+}
