@@ -1,5 +1,4 @@
 import { accountsApi, type AccountDto, type MemberDto } from "@/api/accounts";
-import { transactionsApi } from "@/api/transactions";
 import { MoneyInput } from "@/components/MoneyInput";
 import PageHeader from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
@@ -7,7 +6,6 @@ import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useMutation,
-  useQueries,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -531,6 +529,7 @@ function MembersSheet({
       queryClient.invalidateQueries({
         queryKey: ["account-members", account.id],
       });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
       toast.success("Miembro eliminado");
     },
     onError: () => toast.error("No se pudo eliminar el miembro"),
@@ -673,16 +672,12 @@ function AccountCard({
   onArchive,
   onDelete,
   onMembers,
-  transactionCount,
-  members,
 }: {
   account: AccountDto;
   onEdit: () => void;
   onArchive: () => void;
   onDelete: () => void;
   onMembers: () => void;
-  transactionCount?: number;
-  members?: MemberDto[];
 }) {
   const color = account.color
     ? account.color.startsWith("#")
@@ -731,27 +726,19 @@ function AccountCard({
         <p className="mt-1 text-[11px] font-medium text-gray-400 dark:text-gray-500">
           Balance
         </p>
-        <AccountAccessSummary members={members} />
+        <AccountAccessSummary members={account.members ?? []} />
       </div>
 
       <div className="mt-auto flex items-end justify-between gap-2 border-t border-gray-100 pt-2 dark:border-[#2a2a28]">
         <div className="flex min-w-0 flex-wrap gap-1 text-[10px] font-medium text-gray-500 dark:text-gray-400">
           <span
             className="inline-flex h-6 items-center gap-1 rounded-full bg-gray-50 px-1.5 dark:bg-[#252523]"
-            title={
-              transactionCount === undefined
-                ? "Cargando transacciones"
-                : `${transactionCount} transaccion${transactionCount === 1 ? "" : "es"}`
-            }
-            aria-label={
-              transactionCount === undefined
-                ? "Cargando transacciones"
-                : `${transactionCount} transaccion${transactionCount === 1 ? "" : "es"}`
-            }
+            title={`${account.transactionCount ?? 0} transaccion${account.transactionCount === 1 ? "" : "es"}`}
+            aria-label={`${account.transactionCount ?? 0} transaccion${account.transactionCount === 1 ? "" : "es"}`}
           >
             <ReceiptText size={11} />
             <span className="tabular-nums">
-              {transactionCount === undefined ? "..." : transactionCount}
+              {account.transactionCount ?? 0}
             </span>
           </span>
           <span
@@ -871,8 +858,8 @@ export default function AccountsPage() {
   const [sortBy, setSortBy] = useState<"NAME" | "BALANCE">("NAME");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["accounts"],
-    queryFn: accountsApi.list,
+    queryKey: ["accounts", "summary"],
+    queryFn: accountsApi.listWithSummary,
   });
 
   const accounts = data?.data ?? [];
@@ -895,32 +882,6 @@ export default function AccountsPage() {
     );
   const active = visibleAccounts.filter((a) => !a.isArchived);
   const archived = visibleAccounts.filter((a) => a.isArchived);
-  const transactionCountQueries = useQueries({
-    queries: visibleAccounts.map((account) => ({
-      queryKey: ["transactions", "count", account.id],
-      queryFn: () =>
-        transactionsApi.list({ accountIds: [account.id], size: 1 }),
-    })),
-  });
-  const transactionCounts = Object.fromEntries(
-    visibleAccounts.map((account, index) => [
-      account.id,
-      transactionCountQueries[index].data?.meta.totalElements,
-    ]),
-  ) as Record<string, number | undefined>;
-  const memberQueries = useQueries({
-    queries: visibleAccounts.map((account) => ({
-      queryKey: ["account-members", account.id],
-      queryFn: () => accountsApi.listMembers(account.id),
-    })),
-  });
-  const accountMembers = Object.fromEntries(
-    visibleAccounts.map((account, index) => [
-      account.id,
-      memberQueries[index].data,
-    ]),
-  ) as Record<string, MemberDto[] | undefined>;
-
   const archiveMutation = useMutation({
     mutationFn: ({
       id,
@@ -1049,8 +1010,6 @@ export default function AccountsPage() {
                   <AccountCard
                     key={a.id}
                     account={a}
-                    transactionCount={transactionCounts[a.id]}
-                    members={accountMembers[a.id]}
                     onEdit={() => setSheet(a)}
                     onArchive={() =>
                       archiveMutation.mutate({
@@ -1077,8 +1036,6 @@ export default function AccountsPage() {
                   <AccountCard
                     key={a.id}
                     account={a}
-                    transactionCount={transactionCounts[a.id]}
-                    members={accountMembers[a.id]}
                     onEdit={() => setSheet(a)}
                     onArchive={() =>
                       archiveMutation.mutate({

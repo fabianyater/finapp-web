@@ -12,6 +12,8 @@ export interface AccountDto {
   isDefault: boolean
   isArchived: boolean
   excludeFromTotal: boolean
+  transactionCount?: number
+  members?: MemberDto[]
 }
 
 export interface PagedAccountResponse {
@@ -58,6 +60,11 @@ export const accountsApi = {
   list: () =>
     apiClient
       .get<PagedAccountResponse>('/accounts', { params: { size: 100 } })
+      .then((r) => r.data),
+
+  listWithSummary: () =>
+    apiClient
+      .get<PagedAccountResponse>('/accounts', { params: { size: 100, includeSummary: true } })
       .then((r) => r.data),
 
   create: (data: CreateAccountRequest) =>
