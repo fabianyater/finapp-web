@@ -11,6 +11,10 @@ import TransferModal from '@/pages/dashboard/components/modals/TransferModal'
 import BottomNav from './BottomNav'
 import { useState } from 'react'
 
+export type AppLayoutContext = {
+  setDashboardAccountId: (accountId: string | null) => void
+}
+
 export default function AppLayout() {
   const { setMode } = useThemeStore()
   const location = useLocation()
@@ -20,9 +24,12 @@ export default function AppLayout() {
   const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list })
   const [showTransaction, setShowTransaction] = useState(false)
   const [showTransfer, setShowTransfer] = useState(false)
+  const [dashboardAccountId, setDashboardAccountId] = useState<string | null>(null)
 
   const accounts = (accountsData?.data ?? []).filter((account) => !account.isArchived)
   const defaultAccount = accounts.find((account) => account.isDefault) ?? accounts[0]
+  const selectedAccount = accounts.find((account) => account.id === dashboardAccountId)
+  const movementAccount = selectedAccount ?? defaultAccount
   const isHome = location.pathname === '/dashboard'
 
   function invalidateMovementData() {
@@ -42,23 +49,23 @@ export default function AppLayout() {
   return (
     <div className="flex flex-col h-screen bg-[#f3f6f1] dark:bg-[#111110]">
       <main className="flex-1 overflow-auto pb-24">
-        <Outlet />
+        <Outlet context={{ setDashboardAccountId } satisfies AppLayoutContext} />
       </main>
-      <BottomNav />
+      <BottomNav reserveCreateSlot={isHome} />
       {isHome && (
         <CreateActionMenu
-          canCreateTransaction={!!defaultAccount}
+          canCreateTransaction={!!movementAccount}
           canTransfer={accounts.length >= 2}
           onTransaction={() => setShowTransaction(true)}
           onTransfer={() => setShowTransfer(true)}
         />
       )}
-      {showTransaction && defaultAccount && (
+      {showTransaction && movementAccount && (
         <AddTransactionModal
-          accountId={defaultAccount.id}
+          accountId={movementAccount.id}
           categories={categories}
           initialDescription=""
-          currency={defaultAccount.currency}
+          currency={movementAccount.currency}
           onClose={() => setShowTransaction(false)}
           onSuccess={() => {
             setShowTransaction(false)
@@ -66,10 +73,10 @@ export default function AppLayout() {
           }}
         />
       )}
-      {showTransfer && defaultAccount && (
+      {showTransfer && movementAccount && (
         <TransferModal
           accounts={accounts}
-          defaultFromAccountId={defaultAccount.id}
+          defaultFromAccountId={movementAccount.id}
           onClose={() => setShowTransfer(false)}
           onSuccess={() => {
             setShowTransfer(false)

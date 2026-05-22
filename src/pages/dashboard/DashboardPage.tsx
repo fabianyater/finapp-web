@@ -1,7 +1,8 @@
 import { useAuthStore } from "@/store/auth";
+import { type AppLayoutContext } from "@/components/AppLayout";
 import { Wallet } from "lucide-react";
 import { useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import CategoryBreakdown from "./components/CategoryBreakdown";
 import DashboardTopBar from "./components/DashboardTopBar";
 import MonthSelector from "./components/MonthSelector";
@@ -16,6 +17,7 @@ import { useDashboardState } from "./hooks/useDashboardState";
 import { useMonthNavigation } from "./hooks/useMonthNavigation";
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { setDashboardAccountId } = useOutletContext<AppLayoutContext>();
   const logout = useAuthStore((s) => s.logout);
 
   const monthNav = useMonthNavigation();
@@ -42,6 +44,12 @@ export default function DashboardPage() {
       setSelectedAccountId(def.id);
     }
   }, [accounts, selectedAccountId, setSelectedAccountId]);
+
+  useEffect(() => {
+    setDashboardAccountId(selectedAccountId);
+
+    return () => setDashboardAccountId(null);
+  }, [selectedAccountId, setDashboardAccountId]);
 
   const selectedAccount = dashData.accounts.find(
     (a) => a.id === dashState.selectedAccountId,

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import {
   Archive,
   ArchiveRestore,
@@ -28,6 +29,10 @@ const ACCOUNT_TYPES = [
   { value: "BANK", label: "Banco", emoji: "🏦" },
   { value: "CREDIT_CARD", label: "Crédito", emoji: "💳" },
 ];
+
+const ACCOUNT_TYPE_LABELS = Object.fromEntries(
+  ACCOUNT_TYPES.map(({ value, label }) => [value, label]),
+) as Record<AccountDto["type"], string>;
 
 const CURRENCIES = ["COP", "MXN", "USD", "EUR", "ARS", "GBP"];
 
@@ -94,6 +99,16 @@ function fmt(amount: number, currency = "COP") {
 function resolveIcon(key?: string) {
   if (!key) return "💰";
   return KEY_TO_ICON[key] ?? key;
+}
+
+function balanceTotals(accounts: AccountDto[]) {
+  return Object.entries(
+    accounts.reduce<Record<string, number>>((totals, account) => {
+      totals[account.currency] =
+        (totals[account.currency] ?? 0) + account.currentBalance;
+      return totals;
+    }, {}),
+  );
 }
 
 // ── form schema ───────────────────────────────────────────────────────────────
@@ -486,8 +501,10 @@ function MembersSheet({
       setEmail("");
       toast.success("Invitación enviada");
     },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message;
+    onError: (err) => {
+      const msg = isAxiosError<{ message?: string }>(err)
+        ? err.response?.data?.message
+        : undefined;
       toast.error(msg ?? "No se pudo invitar al usuario");
     },
   });
@@ -645,54 +662,95 @@ function AccountCard({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-[#1a1a18] border rounded-xl p-4 flex items-center gap-3",
+        "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 rounded-xl border bg-white px-3 py-2.5 dark:bg-[#1a1a18]",
         account.isArchived
           ? "border-gray-100 dark:border-[#2a2a28] opacity-60"
           : "border-gray-200 dark:border-[#2a2a28]",
       )}
     >
-      {/* info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
-          {account.name}
-        </p>
-        <p className="text-sm font-semibold mt-1" style={{ color }}>
-          {fmt(account.currentBalance, account.currency)}
-        </p>
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base"
+        style={{ backgroundColor: `${color}1f` }}
+      >
+        {resolveIcon(account.icon)}
       </div>
 
-      {/* actions */}
-      <div className="flex items-center gap-1 flex-shrink-0">
-        <button
-          onClick={onMembers}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          title="Miembros"
-        >
-          <Users size={14} />
-        </button>
-        <button
-          onClick={onEdit}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-        >
-          <Pencil size={14} />
-        </button>
-        <button
-          onClick={onArchive}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          title={account.isArchived ? "Desarchivar" : "Archivar"}
-        >
-          {account.isArchived ? (
-            <ArchiveRestore size={14} />
-          ) : (
-            <Archive size={14} />
+      <div className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+          <p className="min-w-0 truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
+            {account.name}
+          </p>
+          {account.isDefault && (
+            <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300">
+              Predeterminada
+            </span>
           )}
-        </button>
-        <button
-          onClick={onDelete}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-500 transition-colors"
+          {account.excludeFromTotal && (
+            <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-[#252523] dark:text-gray-400">
+              Excluida
+            </span>
+          )}
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+          <span>{ACCOUNT_TYPE_LABELS[account.type]}</span>
+          <span aria-hidden>·</span>
+          <span>{account.currency}</span>
+          <span aria-hidden>·</span>
+          <span>Inicial {fmt(account.initialBalance, account.currency)}</span>
+          {account.isArchived && (
+            <>
+              <span aria-hidden>·</span>
+              <span>Archivada</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="flex min-w-0 flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+        <p
+          className="max-w-28 truncate text-sm font-semibold tabular-nums sm:min-w-28 sm:text-right"
+          style={{ color }}
         >
-          <Trash2 size={14} />
-        </button>
+          {fmt(account.currentBalance, account.currency)}
+        </p>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button
+            onClick={onMembers}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-300"
+            title="Miembros"
+            aria-label={`Miembros de ${account.name}`}
+          >
+            <Users size={13} />
+          </button>
+          <button
+            onClick={onEdit}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-300"
+            title="Editar"
+            aria-label={`Editar ${account.name}`}
+          >
+            <Pencil size={13} />
+          </button>
+          <button
+            onClick={onArchive}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-300"
+            title={account.isArchived ? "Desarchivar" : "Archivar"}
+            aria-label={`${account.isArchived ? "Desarchivar" : "Archivar"} ${account.name}`}
+          >
+            {account.isArchived ? (
+              <ArchiveRestore size={13} />
+            ) : (
+              <Archive size={13} />
+            )}
+          </button>
+          <button
+            onClick={onDelete}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
+            title="Eliminar"
+            aria-label={`Eliminar ${account.name}`}
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -714,6 +772,8 @@ export default function AccountsPage() {
   const accounts = data?.data ?? [];
   const active = accounts.filter((a) => !a.isArchived);
   const archived = accounts.filter((a) => a.isArchived);
+  const included = active.filter((a) => !a.excludeFromTotal);
+  const totals = balanceTotals(included);
 
   const archiveMutation = useMutation({
     mutationFn: ({
@@ -784,8 +844,35 @@ export default function AccountsPage() {
         </div>
       ) : (
         <div className="space-y-5">
+          <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 dark:border-[#2a2a28] dark:bg-[#1a1a18]">
+            <div className="flex flex-wrap items-center justify-between gap-1">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-300">
+                Saldo de cuentas activas
+              </p>
+              <p className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                {included.length} incluidas · {active.length - included.length}{" "}
+                excluidas
+              </p>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {totals.map(([currency, total]) => (
+                <span
+                  key={currency}
+                  className="rounded-lg bg-gray-50 px-2 py-1 text-xs font-semibold tabular-nums text-gray-700 dark:bg-[#252523] dark:text-gray-200"
+                >
+                  {fmt(total, currency)}
+                </span>
+              ))}
+              {totals.length === 0 && (
+                <span className="text-xs text-gray-400 dark:text-gray-500">
+                  Ninguna cuenta incluida en el total
+                </span>
+              )}
+            </div>
+          </div>
+
           {active.length > 0 && (
-            <section className="space-y-2">
+            <section className="space-y-1.5">
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Activas · {active.length}
               </p>
@@ -809,7 +896,7 @@ export default function AccountsPage() {
           )}
 
           {archived.length > 0 && (
-            <section className="space-y-2">
+            <section className="space-y-1.5">
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Archivadas · {archived.length}
               </p>
