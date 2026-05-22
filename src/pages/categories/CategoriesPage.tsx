@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Pencil, Trash2, Loader2, RotateCcw, X, ChevronDown, ChevronRight } from 'lucide-react'
+import type { EmojiStyle, Theme } from 'emoji-picker-react'
+import { Plus, Pencil, Trash2, Loader2, RotateCcw, X, ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { categoriesApi, type CategoryDto } from '@/api/categories'
 import { toast } from '@/store/toast'
@@ -25,8 +26,6 @@ const ICON_MAP: Record<string, string> = {
 const ICON_TO_KEY: Record<string, string> = Object.fromEntries(
   Object.entries(ICON_MAP).map(([k, v]) => [v, k])
 )
-
-const ICONS = Object.values(ICON_MAP)
 
 const COLORS = [
   '#ef4444', '#f97316', '#f59e0b', '#eab308',
@@ -55,6 +54,8 @@ const schema = z.object({
 })
 type FormData = z.infer<typeof schema>
 
+const EmojiPicker = lazy(() => import('emoji-picker-react'))
+
 // ── category sheet ────────────────────────────────────────────────────────────
 
 function CategorySheet({
@@ -69,7 +70,7 @@ function CategorySheet({
   const queryClient = useQueryClient()
   const isEdit = !!category
 
-  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: category?.name ?? '',
@@ -79,8 +80,10 @@ function CategorySheet({
     },
   })
 
-  const selectedColor = watch('color')
-  const selectedIcon = watch('icon')
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const selectedColor = useWatch({ control, name: 'color' })
+  const selectedIcon = useWatch({ control, name: 'icon' })
+  const selectedName = useWatch({ control, name: 'name' })
 
   const createMutation = useMutation({
     mutationFn: (d: FormData) => categoriesApi.create({
@@ -112,14 +115,14 @@ function CategorySheet({
 
   const isPending = createMutation.isPending || updateMutation.isPending
 
-  const labelCls = 'block text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5'
-  const inputCls = 'w-full bg-white dark:bg-[#252523] border border-gray-200 dark:border-[#3a3a38] rounded-lg px-4 py-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors'
+  const labelCls = 'mb-1.5 block text-xs font-semibold text-gray-500 dark:text-gray-400'
+  const inputCls = 'w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-[#3a3a38] dark:bg-[#252523] dark:text-gray-100 dark:focus:ring-emerald-950'
 
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-[#1a1a18] rounded-t-2xl border-t border-gray-100 dark:border-[#2a2a28] max-h-[90vh] overflow-y-auto sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md sm:rounded-2xl sm:border sm:shadow-2xl">
-        <div className="sticky top-0 bg-white dark:bg-[#1a1a18] px-5 pt-5 pb-4 border-b border-gray-100 dark:border-[#2a2a28] flex items-center justify-between">
+      <div className="fixed inset-x-0 bottom-0 z-50 max-h-[92vh] overflow-y-auto rounded-t-3xl border-t border-gray-100 bg-white dark:border-[#2a2a28] dark:bg-[#1a1a18] sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:border sm:shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white/95 px-5 pb-4 pt-5 backdrop-blur dark:border-[#2a2a28] dark:bg-[#1a1a18]/95">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {isEdit ? 'Editar categoría' : 'Nueva categoría'}
           </h2>
@@ -128,28 +131,28 @@ function CategorySheet({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit((d) => isEdit ? updateMutation.mutate(d) : createMutation.mutate(d))} className="px-5 py-5 space-y-5 pb-10">
+        <form onSubmit={handleSubmit((d) => isEdit ? updateMutation.mutate(d) : createMutation.mutate(d))} className="space-y-4 px-5 pb-8 pt-5">
 
           {/* type */}
-          <div>
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3 dark:border-[#2a2a28] dark:bg-[#151513]">
             <label className={labelCls}>Tipo</label>
             <Controller
               name="type"
               control={control}
               render={({ field }) => (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1 rounded-xl bg-white p-1 shadow-sm dark:bg-[#252523]">
                   {(['EXPENSE', 'INCOME'] as const).map((t) => (
                     <button
                       key={t}
                       type="button"
                       onClick={() => field.onChange(t)}
                       className={cn(
-                        'py-2.5 rounded-xl border text-xs font-semibold transition-all',
+                        'h-9 rounded-lg text-xs font-semibold transition-colors',
                         field.value === t
                           ? t === 'EXPENSE'
-                            ? 'border-rose-400 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
-                            : 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
-                          : 'border-gray-200 dark:border-[#3a3a38] text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-[#4a4a48]'
+                            ? 'bg-rose-500 text-white shadow-sm'
+                            : 'bg-emerald-600 text-white shadow-sm'
+                          : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-[#30302d]'
                       )}
                     >
                       {t === 'EXPENSE' ? 'Gasto' : 'Ingreso'}
@@ -161,89 +164,90 @@ function CategorySheet({
           </div>
 
           {/* name */}
-          <div>
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3 dark:border-[#2a2a28] dark:bg-[#151513]">
             <label className={labelCls}>Nombre</label>
-            <input {...register('name')} placeholder="Alimentación" className={inputCls} />
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+            <div className="flex items-center gap-3">
+              <Controller
+                name="icon"
+                control={control}
+                render={({ field }) => (
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker((open) => !open)}
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-white text-2xl shadow-sm transition-colors hover:border-emerald-300 dark:border-[#3a3a38] dark:bg-[#252523]"
+                    title="Elegir emoji"
+                  >
+                    {field.value}
+                  </button>
+                )}
+              />
+              <div className="min-w-0 flex-1">
+                <input {...register('name')} placeholder="Alimentacion" className={inputCls} />
+                {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+              </div>
+            </div>
           </div>
 
-          {/* icon */}
-          <div>
-            <label className={labelCls}>Ícono</label>
+          {showEmojiPicker && (
             <Controller
               name="icon"
               control={control}
               render={({ field }) => (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {ICONS.map((emoji) => (
+                <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-[#3a3a38]">
+                  <Suspense fallback={<div className="flex h-80 items-center justify-center bg-gray-50 text-xs text-gray-400 dark:bg-[#252523] dark:text-gray-500">Cargando emojis...</div>}>
+                    <EmojiPicker
+                      width="100%"
+                      height={320}
+                      theme={'auto' as Theme}
+                      emojiStyle={'native' as EmojiStyle}
+                      lazyLoadEmojis
+                      searchPlaceholder="Buscar emoji"
+                      previewConfig={{ showPreview: false }}
+                      onEmojiClick={(emoji) => {
+                        field.onChange(emoji.emoji)
+                        setShowEmojiPicker(false)
+                      }}
+                    />
+                  </Suspense>
+                </div>
+              )}
+            />
+          )}
+
+          <div className="rounded-2xl border border-gray-100 p-3 dark:border-[#2a2a28]">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl"
+                style={{ backgroundColor: `${selectedColor}22` }}
+              >
+                {selectedIcon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{selectedName || 'Mi categoría'}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Color de la categoría</p>
+              </div>
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex max-w-48 flex-wrap justify-end gap-1.5">
+                    {COLORS.map((c) => (
                       <button
-                        key={emoji}
+                        key={c}
                         type="button"
-                        onClick={() => field.onChange(emoji)}
+                        onClick={() => field.onChange(c)}
+                        aria-label={`Color ${c}`}
                         className={cn(
-                          'w-10 h-10 flex items-center justify-center rounded-xl text-lg border transition-all',
-                          field.value === emoji
-                            ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30'
-                            : 'border-gray-200 dark:border-[#3a3a38] hover:border-gray-300 dark:hover:border-[#4a4a48]'
+                          'h-5 w-5 rounded-full border-2 transition-transform',
+                          field.value === c ? 'scale-110 border-gray-900 dark:border-white' : 'border-transparent'
                         )}
-                      >
-                        {emoji}
-                      </button>
+                        style={{ backgroundColor: c }}
+                      />
                     ))}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">O escribe un emoji:</span>
-                    <input
-                      type="text"
-                      value={ICONS.includes(field.value) ? '' : field.value}
-                      onChange={(e) => {
-                        const val = [...e.target.value].slice(-2).join('')
-                        if (val) field.onChange(val)
-                      }}
-                      placeholder="🌟"
-                      className="w-16 text-center text-lg bg-white dark:bg-[#252523] border border-gray-200 dark:border-[#3a3a38] rounded-lg py-1.5 outline-none focus:border-emerald-400 dark:focus:border-emerald-500 transition-colors"
-                    />
-                  </div>
-                </div>
-              )}
-            />
-          </div>
-
-          {/* color */}
-          <div>
-            <label className={labelCls}>Color</label>
-            <Controller
-              name="color"
-              control={control}
-              render={({ field }) => (
-                <div className="flex flex-wrap gap-2">
-                  {COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => field.onChange(c)}
-                      className={cn(
-                        'w-8 h-8 rounded-full border-2 transition-all',
-                        field.value === c ? 'border-gray-900 dark:border-white scale-110' : 'border-transparent'
-                      )}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-              )}
-            />
-          </div>
-
-          {/* preview */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#252523]">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style={{ backgroundColor: selectedColor + '22' }}
-            >
-              {selectedIcon}
+                )}
+              />
             </div>
-            <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{watch('name') || 'Mi categoría'}</p>
           </div>
 
           <button
@@ -271,30 +275,49 @@ function CategoryRow({
   onDelete: () => void
 }) {
   const color = resolveColor(category.color)
+  const [showActions, setShowActions] = useState(false)
 
   return (
-    <div className="flex items-center gap-3 py-3 px-1">
+    <div className="group relative flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-[#252523]">
       <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base shadow-[0_1px_1px_rgba(15,23,42,0.05)]"
         style={{ backgroundColor: color + '22' }}
       >
         {resolveIcon(category.icon)}
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{category.name}</p>
-      <div className="flex items-center gap-0.5">
+      <p className="min-w-0 flex-1 truncate text-sm font-medium text-gray-800 dark:text-gray-100">{category.name}</p>
+      <div className="flex shrink-0 items-center gap-0.5">
         <button
           onClick={onEdit}
           className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          title="Editar"
+          aria-label={`Editar ${category.name}`}
         >
           <Pencil size={13} />
         </button>
         <button
-          onClick={onDelete}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-500 transition-colors"
+          onClick={() => setShowActions((open) => !open)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-300"
+          title="Más acciones"
+          aria-label={`Más acciones para ${category.name}`}
         >
-          <Trash2 size={13} />
+          <MoreHorizontal size={14} />
         </button>
       </div>
+      {showActions && (
+        <div className="absolute right-2 top-11 z-10 w-32 rounded-xl border border-gray-200 bg-white p-1 shadow-xl dark:border-[#323230] dark:bg-[#1a1a18]">
+          <button
+            onClick={() => {
+              setShowActions(false)
+              onDelete()
+            }}
+            className="flex h-8 w-full items-center gap-2 rounded-lg px-2 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/20"
+          >
+            <Trash2 size={12} />
+            Eliminar
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -351,8 +374,8 @@ function Section({
   onDelete: (c: CategoryDto) => void
 }) {
   return (
-    <div className="bg-white dark:bg-[#1a1a18] border border-gray-200 dark:border-[#2a2a28] rounded-xl overflow-hidden">
-      <div className="px-4 py-3.5 border-b border-gray-100 dark:border-[#2a2a28] flex items-center justify-between">
+    <div className="overflow-visible rounded-2xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.04)] dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:shadow-none">
+      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-[#2a2a28]">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: accent }} />
           <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
@@ -367,7 +390,7 @@ function Section({
         </button>
       </div>
 
-      <div className="px-4 divide-y divide-gray-50 dark:divide-[#2a2a28]">
+      <div className="divide-y divide-gray-50 px-2 py-1 dark:divide-[#2a2a28]">
         {items.length === 0 ? (
           <p className="py-6 text-center text-xs text-gray-400 dark:text-gray-500">Sin categorías</p>
         ) : (
@@ -462,7 +485,7 @@ export default function CategoriesPage() {
           />
 
           {/* deleted section */}
-          <div className="bg-white dark:bg-[#1a1a18] border border-gray-200 dark:border-[#2a2a28] rounded-xl overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.04)] dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:shadow-none">
             <button
               onClick={() => setShowDeleted((v) => !v)}
               className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-[#252523] transition-colors"
