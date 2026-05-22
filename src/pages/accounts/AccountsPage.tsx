@@ -1,4 +1,4 @@
-import { accountsApi, type AccountDto } from "@/api/accounts";
+import { accountsApi, type AccountDto, type MemberDto } from "@/api/accounts";
 import { transactionsApi } from "@/api/transactions";
 import { MoneyInput } from "@/components/MoneyInput";
 import PageHeader from "@/components/PageHeader";
@@ -12,6 +12,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
+import type { EmojiStyle, Theme } from "emoji-picker-react";
 import {
   Archive,
   ArchiveRestore,
@@ -25,8 +26,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { lazy, Suspense, useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 // ── constants ─────────────────────────────────────────────────────────────────
@@ -42,21 +43,6 @@ const ACCOUNT_TYPE_LABELS = Object.fromEntries(
 ) as Record<AccountDto["type"], string>;
 
 const CURRENCIES = ["COP", "MXN", "USD", "EUR", "ARS", "GBP"];
-
-const ICONS = [
-  "💰",
-  "💳",
-  "🏦",
-  "💵",
-  "🪙",
-  "💼",
-  "🛍️",
-  "✈️",
-  "🏠",
-  "🚗",
-  "🍽️",
-  "📱",
-];
 
 const ICON_TO_KEY: Record<string, string> = {
   "💰": "currency-dollar",
@@ -127,6 +113,8 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const EmojiPicker = lazy(() => import("emoji-picker-react"));
+
 // ── account form sheet ────────────────────────────────────────────────────────
 
 function AccountSheet({
@@ -143,7 +131,6 @@ function AccountSheet({
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -163,8 +150,11 @@ function AccountSheet({
     },
   });
 
-  const selectedColor = watch("color");
-  const selectedIcon = watch("icon");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const selectedColor = useWatch({ control, name: "color" });
+  const selectedIcon = useWatch({ control, name: "icon" });
+  const selectedName = useWatch({ control, name: "name" });
+  const selectedCurrency = useWatch({ control, name: "currency" });
 
   const createMutation = useMutation({
     mutationFn: accountsApi.create,
@@ -213,18 +203,24 @@ function AccountSheet({
   };
 
   const inputCls =
-    "w-full bg-white dark:bg-[#252523] border border-gray-200 dark:border-[#3a3a38] rounded-lg px-4 py-3 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors";
-  const labelCls =
-    "block text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5";
+    "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-[#3a3a38] dark:bg-[#252523] dark:text-gray-100 dark:focus:ring-emerald-950";
+  const labelCls = "mb-1.5 block text-xs font-semibold text-gray-500 dark:text-gray-400";
 
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-[#1a1a18] rounded-t-2xl border-t border-gray-100 dark:border-[#2a2a28] max-h-[90vh] overflow-y-auto sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md sm:rounded-2xl sm:border sm:shadow-2xl">
-        <div className="sticky top-0 bg-white dark:bg-[#1a1a18] px-5 pt-5 pb-4 border-b border-gray-100 dark:border-[#2a2a28] flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {isEdit ? "Editar cuenta" : "Nueva cuenta"}
-          </h2>
+      <div className="fixed inset-x-0 bottom-0 z-50 max-h-[92vh] overflow-y-auto rounded-t-3xl border-t border-gray-100 bg-white dark:border-[#2a2a28] dark:bg-[#1a1a18] sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:border sm:shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-gray-100 bg-white/95 px-5 pb-4 pt-5 backdrop-blur dark:border-[#2a2a28] dark:bg-[#1a1a18]/95">
+          <div>
+            <h2 className="text-base font-semibold text-gray-950 dark:text-gray-100">
+              {isEdit ? "Editar cuenta" : "Nueva cuenta"}
+            </h2>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+              {isEdit
+                ? "Actualiza los detalles y apariencia."
+                : "Nombre, tipo y saldo para empezar."}
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors"
@@ -235,48 +231,65 @@ function AccountSheet({
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="px-5 py-5 space-y-5 pb-10"
+          className="space-y-4 px-5 pb-8 pt-5"
         >
-          {/* name */}
-          <div>
-            <label className={labelCls}>Nombre</label>
-            <input
-              {...register("name")}
-              placeholder="Mi cuenta"
-              className={inputCls}
-            />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-            )}
-          </div>
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/70 p-3 dark:border-[#2a2a28] dark:bg-[#151513]">
+            <div className="flex items-start gap-3">
+              <Controller
+                name="icon"
+                control={control}
+                render={({ field }) => (
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker((open) => !open)}
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-white text-2xl shadow-sm transition-colors hover:border-emerald-300 dark:border-[#3a3a38] dark:bg-[#252523]"
+                    title="Elegir emoji"
+                  >
+                    {field.value}
+                  </button>
+                )}
+              />
+              <div className="min-w-0 flex-1">
+                <label className={labelCls}>Nombre</label>
+                <input
+                  {...register("name")}
+                  placeholder="Billetera, banco, tarjeta..."
+                  className={inputCls}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-xs text-red-500">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+            </div>
 
-          {/* type */}
-          <div>
-            <label className={labelCls}>Tipo</label>
-            <Controller
-              name="type"
-              control={control}
-              render={({ field }) => (
-                <div className="grid grid-cols-3 gap-2">
-                  {ACCOUNT_TYPES.map((t) => (
-                    <button
-                      key={t.value}
-                      type="button"
-                      onClick={() => field.onChange(t.value)}
-                      className={cn(
-                        "flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs font-medium transition-all",
-                        field.value === t.value
-                          ? "border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400"
-                          : "border-gray-200 dark:border-[#3a3a38] text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-[#4a4a48]",
-                      )}
-                    >
-                      <span className="text-lg">{t.emoji}</span>
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            />
+            <div className="mt-3">
+              <label className={labelCls}>Tipo</label>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <div className="grid grid-cols-3 gap-1 rounded-xl bg-white p-1 shadow-sm dark:bg-[#252523]">
+                    {ACCOUNT_TYPES.map((t) => (
+                      <button
+                        key={t.value}
+                        type="button"
+                        onClick={() => field.onChange(t.value)}
+                        className={cn(
+                          "h-9 rounded-lg text-xs font-semibold transition-colors",
+                          field.value === t.value
+                            ? "bg-emerald-600 text-white shadow-sm"
+                            : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-[#30302d]",
+                        )}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
           </div>
 
           {/* balance + currency */}
@@ -290,7 +303,7 @@ function AccountSheet({
                   <MoneyInput
                     value={field.value === 0 ? "" : field.value}
                     onChange={(v) => field.onChange(v === "" ? 0 : v)}
-                    currency={watch("currency")}
+                    currency={selectedCurrency}
                     className={inputCls}
                   />
                 )}
@@ -324,82 +337,83 @@ function AccountSheet({
             </div>
           </div>
 
-          {/* icon */}
-          <div>
-            <label className={labelCls}>Ícono</label>
+          {showEmojiPicker && (
             <Controller
               name="icon"
               control={control}
               render={({ field }) => (
-                <div className="flex flex-wrap gap-2">
-                  {ICONS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => field.onChange(emoji)}
-                      className={cn(
-                        "w-10 h-10 flex items-center justify-center rounded-xl text-lg border transition-all",
-                        field.value === emoji
-                          ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30"
-                          : "border-gray-200 dark:border-[#3a3a38] hover:border-gray-300 dark:hover:border-[#4a4a48]",
-                      )}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              )}
-            />
-          </div>
-
-          {/* color */}
-          <div>
-            <label className={labelCls}>Color</label>
-            <Controller
-              name="color"
-              control={control}
-              render={({ field }) => (
-                <div className="flex flex-wrap gap-2">
-                  {COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => field.onChange(c)}
-                      className={cn(
-                        "w-8 h-8 rounded-full border-2 transition-all",
-                        field.value === c
-                          ? "border-gray-900 dark:border-white scale-110"
-                          : "border-transparent",
-                      )}
-                      style={{ backgroundColor: c }}
+                <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-[#3a3a38]">
+                  <Suspense
+                    fallback={
+                      <div className="flex h-80 items-center justify-center bg-gray-50 text-xs text-gray-400 dark:bg-[#252523] dark:text-gray-500">
+                        Cargando emojis...
+                      </div>
+                    }
+                  >
+                    <EmojiPicker
+                      width="100%"
+                      height={320}
+                      theme={"auto" as Theme}
+                      emojiStyle={"native" as EmojiStyle}
+                      lazyLoadEmojis
+                      searchPlaceholder="Buscar emoji"
+                      previewConfig={{ showPreview: false }}
+                      onEmojiClick={(emoji) => {
+                        field.onChange(emoji.emoji);
+                        setShowEmojiPicker(false);
+                      }}
                     />
-                  ))}
+                  </Suspense>
                 </div>
               )}
             />
+          )}
+
+          <div className="rounded-2xl border border-gray-100 p-3 dark:border-[#2a2a28]">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl"
+                style={{ backgroundColor: `${selectedColor}22` }}
+              >
+                {selectedIcon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {selectedName || "Mi cuenta"}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Color de la cuenta
+                </p>
+              </div>
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex max-w-44 flex-wrap justify-end gap-1.5">
+                    {COLORS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => field.onChange(c)}
+                        aria-label={`Color ${c}`}
+                        className={cn(
+                          "h-5 w-5 rounded-full border-2 transition-transform",
+                          field.value === c
+                            ? "scale-110 border-gray-900 dark:border-white"
+                            : "border-transparent",
+                        )}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
           </div>
 
-          {/* preview */}
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-[#252523]">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style={{ backgroundColor: selectedColor + "22" }}
-            >
-              {selectedIcon}
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 dark:text-gray-500">
-                Vista previa
-              </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                {watch("name") || "Mi cuenta"}
-              </p>
-            </div>
-          </div>
-
-          {/* toggles */}
-          <div className="space-y-3">
-            <Controller
+          {isEdit && (
+            <div className="space-y-3 rounded-2xl border border-gray-100 p-3 dark:border-[#2a2a28]">
+              <Controller
               name="isDefault"
               control={control}
               render={({ field }) => (
@@ -425,8 +439,8 @@ function AccountSheet({
                   </div>
                 </label>
               )}
-            />
-            <Controller
+              />
+              <Controller
               name="excludeFromTotal"
               control={control}
               render={({ field }) => (
@@ -452,8 +466,9 @@ function AccountSheet({
                   </div>
                 </label>
               )}
-            />
-          </div>
+              />
+            </div>
+          )}
 
           <button
             type="submit"
@@ -613,21 +628,28 @@ function MembersSheet({
                       {initials(m.name)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">
-                        {m.name}
+                      <p className="flex items-center gap-1.5 truncate text-sm font-medium text-gray-800 dark:text-gray-100">
+                        <span className="truncate">{m.name}</span>
+                        {m.owner && (
+                          <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+                            Propietario
+                          </span>
+                        )}
                       </p>
                       <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
                         {m.email}
                       </p>
                     </div>
-                    <button
-                      onClick={() => removeMutation.mutate(m.userId)}
-                      disabled={removeMutation.isPending}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-500 transition-colors disabled:opacity-40"
-                      title="Quitar miembro"
-                    >
-                      <UserMinus size={14} />
-                    </button>
+                    {!m.owner && (
+                      <button
+                        onClick={() => removeMutation.mutate(m.userId)}
+                        disabled={removeMutation.isPending}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-500 transition-colors disabled:opacity-40"
+                        title="Quitar miembro"
+                      >
+                        <UserMinus size={14} />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -648,6 +670,7 @@ function AccountCard({
   onDelete,
   onMembers,
   transactionCount,
+  members,
 }: {
   account: AccountDto;
   onEdit: () => void;
@@ -655,6 +678,7 @@ function AccountCard({
   onDelete: () => void;
   onMembers: () => void;
   transactionCount?: number;
+  members?: MemberDto[];
 }) {
   const color = account.color
     ? account.color.startsWith("#")
@@ -668,14 +692,9 @@ function AccountCard({
         "relative flex min-h-[13rem] flex-col overflow-hidden rounded-2xl border bg-white p-4 dark:bg-[#1a1a18]",
         account.isArchived
           ? "border-gray-100 opacity-60 dark:border-[#2a2a28]"
-          : "border-gray-200 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#2a2a28]",
+          : "border-gray-100 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.05)] dark:border-[#2a2a28] dark:shadow-[0_1px_2px_rgba(0,0,0,0.18),0_12px_28px_rgba(0,0,0,0.2)]",
       )}
     >
-      <span
-        aria-hidden
-        className="absolute inset-y-3 left-0 w-0.5 rounded-full"
-        style={{ backgroundColor: color }}
-      />
       {account.isDefault && (
         <span className="absolute right-3 top-3 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/25 dark:text-amber-300">
           Principal
@@ -708,20 +727,20 @@ function AccountCard({
         <p className="mt-1 text-[11px] font-medium text-gray-400 dark:text-gray-500">
           Balance
         </p>
+        <AccountAccessSummary members={members} />
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-1.5 text-[11px] font-medium text-gray-500 dark:text-gray-400">
-        <span className="rounded-full bg-gray-50 px-2 py-1 dark:bg-[#252523]">
-          {transactionCount === undefined
-            ? "Cargando txns"
-            : `${transactionCount} txn${transactionCount === 1 ? "" : "s"}`}
-        </span>
-        <span className="rounded-full bg-gray-50 px-2 py-1 dark:bg-[#252523]">
-          {account.excludeFromTotal ? "Excluida" : "Incluida"}
-        </span>
-      </div>
-
-      <div className="mt-auto flex items-center justify-end gap-0.5 border-t border-gray-100 pt-2 dark:border-[#2a2a28]">
+      <div className="mt-auto flex items-end justify-between gap-2 border-t border-gray-100 pt-2 dark:border-[#2a2a28]">
+        <div className="flex min-w-0 flex-wrap gap-1 text-[10px] font-medium text-gray-500 dark:text-gray-400">
+          <span className="rounded-full bg-gray-50 px-1.5 py-1 dark:bg-[#252523]">
+            {transactionCount === undefined
+              ? "Cargando txns"
+              : `${transactionCount} txn${transactionCount === 1 ? "" : "s"}`}
+          </span>
+          <span className="rounded-full bg-gray-50 px-1.5 py-1 dark:bg-[#252523]">
+            {account.excludeFromTotal ? "Excluida" : "Incluida"}
+          </span>
+        </div>
         <div className="flex shrink-0 items-center gap-0.5">
           <button
             onClick={onMembers}
@@ -766,6 +785,45 @@ function AccountCard({
 }
 
 // ── main page ─────────────────────────────────────────────────────────────────
+
+function AccountAccessSummary({ members }: { members?: MemberDto[] }) {
+  const sharedMembers = members?.filter((member) => !member.owner);
+
+  if (!members) {
+    return (
+      <p className="mt-2 text-[11px] text-gray-400 dark:text-gray-500">
+        Consultando acceso...
+      </p>
+    );
+  }
+
+  if (sharedMembers?.length === 0) {
+    return (
+      <p className="mt-2 text-[11px] font-medium text-gray-500 dark:text-gray-400">
+        Privada
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-1 text-[10px] font-medium text-gray-600 dark:text-gray-300">
+      {members.map((member) => (
+        <span
+          key={member.userId}
+          className="inline-flex max-w-full items-center gap-1 rounded-full bg-gray-50 px-1.5 py-1 dark:bg-[#252523]"
+          title={member.email}
+        >
+          <span className="max-w-24 truncate">{member.name}</span>
+          {member.owner && (
+            <span className="rounded-full bg-emerald-50 px-1 py-0.5 text-[9px] font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+              Propietario
+            </span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function AccountsPage() {
   const queryClient = useQueryClient();
@@ -816,6 +874,18 @@ export default function AccountsPage() {
       transactionCountQueries[index].data?.meta.totalElements,
     ]),
   ) as Record<string, number | undefined>;
+  const memberQueries = useQueries({
+    queries: visibleAccounts.map((account) => ({
+      queryKey: ["account-members", account.id],
+      queryFn: () => accountsApi.listMembers(account.id),
+    })),
+  });
+  const accountMembers = Object.fromEntries(
+    visibleAccounts.map((account, index) => [
+      account.id,
+      memberQueries[index].data,
+    ]),
+  ) as Record<string, MemberDto[] | undefined>;
 
   const archiveMutation = useMutation({
     mutationFn: ({
@@ -946,6 +1016,7 @@ export default function AccountsPage() {
                     key={a.id}
                     account={a}
                     transactionCount={transactionCounts[a.id]}
+                    members={accountMembers[a.id]}
                     onEdit={() => setSheet(a)}
                     onArchive={() =>
                       archiveMutation.mutate({
@@ -973,6 +1044,7 @@ export default function AccountsPage() {
                     key={a.id}
                     account={a}
                     transactionCount={transactionCounts[a.id]}
+                    members={accountMembers[a.id]}
                     onEdit={() => setSheet(a)}
                     onArchive={() =>
                       archiveMutation.mutate({

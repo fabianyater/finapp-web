@@ -51,6 +51,7 @@ export interface MemberDto {
   email: string
   name: string
   joinedAt: string
+  owner: boolean
 }
 
 export const accountsApi = {
