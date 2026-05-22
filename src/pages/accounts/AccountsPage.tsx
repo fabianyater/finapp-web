@@ -1,10 +1,16 @@
 import { accountsApi, type AccountDto } from "@/api/accounts";
+import { transactionsApi } from "@/api/transactions";
 import { MoneyInput } from "@/components/MoneyInput";
 import PageHeader from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import {
   Archive,
@@ -100,6 +106,10 @@ function fmt(amount: number, currency = "COP") {
 function resolveIcon(key?: string) {
   if (!key) return "💰";
   return KEY_TO_ICON[key] ?? key;
+}
+
+function initial(name: string) {
+  return name.trim().charAt(0).toUpperCase() || "?";
 }
 
 // ── form schema ───────────────────────────────────────────────────────────────
@@ -637,12 +647,14 @@ function AccountCard({
   onArchive,
   onDelete,
   onMembers,
+  transactionCount,
 }: {
   account: AccountDto;
   onEdit: () => void;
   onArchive: () => void;
   onDelete: () => void;
   onMembers: () => void;
+  transactionCount?: number;
 }) {
   const color = account.color
     ? account.color.startsWith("#")
@@ -653,7 +665,7 @@ function AccountCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border bg-white px-4 py-3.5 dark:bg-[#1a1a18]",
+        "relative flex min-h-[13rem] flex-col overflow-hidden rounded-2xl border bg-white p-4 dark:bg-[#1a1a18]",
         account.isArchived
           ? "border-gray-100 opacity-60 dark:border-[#2a2a28]"
           : "border-gray-200 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#2a2a28]",
@@ -664,55 +676,52 @@ function AccountCard({
         className="absolute inset-y-3 left-0 w-0.5 rounded-full"
         style={{ backgroundColor: color }}
       />
-      <div className="flex items-start gap-3">
+      {account.isDefault && (
+        <span className="absolute right-3 top-3 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/25 dark:text-amber-300">
+          Principal
+        </span>
+      )}
+
+      <div className="flex items-start gap-3 pr-0">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base"
-          style={{ backgroundColor: `${color}18` }}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
+          style={{ backgroundColor: `${color}18`, color }}
         >
-          {resolveIcon(account.icon)}
+          {initial(account.name)}
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-            <div className="min-w-0">
-              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {account.name}
-                </p>
-                {account.isDefault && (
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/25 dark:text-amber-300">
-                    Principal
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
-                {ACCOUNT_TYPE_LABELS[account.type]} · {account.currency}
-                {account.isArchived ? " · Archivada" : ""}
-              </p>
-            </div>
-            <div className="text-left sm:text-right">
-              <p className="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
-                {fmt(account.currentBalance, account.currency)}
-              </p>
-              <p className="mt-0.5 text-[11px] font-medium text-gray-400 dark:text-gray-500">
-                Saldo actual
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
-            <span className="tabular-nums">
-              Inicial {fmt(account.initialBalance, account.currency)}
-            </span>
-            <span aria-hidden className="text-gray-300 dark:text-gray-600">
-              ·
-            </span>
-            <span>{account.excludeFromTotal ? "Excluida del total" : "Incluida en el total"}</span>
-          </div>
+        <div className={cn("min-w-0 flex-1", account.isDefault && "pr-16")}>
+          <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {account.name}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-gray-400 dark:text-gray-500">
+            {ACCOUNT_TYPE_LABELS[account.type]} · {account.currency}
+            {account.isArchived ? " · Archivada" : ""}
+          </p>
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-0.5 border-t border-gray-100 pt-2 dark:border-[#2a2a28]">
+      <div className="mt-4">
+        <p className="text-xl font-semibold leading-none tabular-nums text-gray-950 dark:text-white">
+          {fmt(account.currentBalance, account.currency)}
+        </p>
+        <p className="mt-1 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+          Balance
+        </p>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-1.5 text-[11px] font-medium text-gray-500 dark:text-gray-400">
+        <span className="rounded-full bg-gray-50 px-2 py-1 dark:bg-[#252523]">
+          {transactionCount === undefined
+            ? "Cargando txns"
+            : `${transactionCount} txn${transactionCount === 1 ? "" : "s"}`}
+        </span>
+        <span className="rounded-full bg-gray-50 px-2 py-1 dark:bg-[#252523]">
+          {account.excludeFromTotal ? "Excluida" : "Incluida"}
+        </span>
+      </div>
+
+      <div className="mt-auto flex items-center justify-end gap-0.5 border-t border-gray-100 pt-2 dark:border-[#2a2a28]">
         <div className="flex shrink-0 items-center gap-0.5">
           <button
             onClick={onMembers}
@@ -794,6 +803,19 @@ export default function AccountsPage() {
     );
   const active = visibleAccounts.filter((a) => !a.isArchived);
   const archived = visibleAccounts.filter((a) => a.isArchived);
+  const transactionCountQueries = useQueries({
+    queries: visibleAccounts.map((account) => ({
+      queryKey: ["transactions", "count", account.id],
+      queryFn: () =>
+        transactionsApi.list({ accountIds: [account.id], size: 1 }),
+    })),
+  });
+  const transactionCounts = Object.fromEntries(
+    visibleAccounts.map((account, index) => [
+      account.id,
+      transactionCountQueries[index].data?.meta.totalElements,
+    ]),
+  ) as Record<string, number | undefined>;
 
   const archiveMutation = useMutation({
     mutationFn: ({
@@ -918,46 +940,52 @@ export default function AccountsPage() {
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Activas · {active.length}
               </p>
-              {active.map((a) => (
-                <AccountCard
-                  key={a.id}
-                  account={a}
-                  onEdit={() => setSheet(a)}
-                  onArchive={() =>
-                    archiveMutation.mutate({
-                      id: a.id,
-                      isArchived: a.isArchived,
-                      excludeFromTotal: a.excludeFromTotal,
-                    })
-                  }
-                  onDelete={() => setDeleteTarget(a)}
-                  onMembers={() => setMembersTarget(a)}
-                />
-              ))}
+              <div className="grid gap-3 sm:grid-cols-2">
+                {active.map((a) => (
+                  <AccountCard
+                    key={a.id}
+                    account={a}
+                    transactionCount={transactionCounts[a.id]}
+                    onEdit={() => setSheet(a)}
+                    onArchive={() =>
+                      archiveMutation.mutate({
+                        id: a.id,
+                        isArchived: a.isArchived,
+                        excludeFromTotal: a.excludeFromTotal,
+                      })
+                    }
+                    onDelete={() => setDeleteTarget(a)}
+                    onMembers={() => setMembersTarget(a)}
+                  />
+                ))}
+              </div>
             </section>
           )}
 
           {archived.length > 0 && (
-            <section className="space-y-1.5">
+            <section className="space-y-2">
               <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Archivadas · {archived.length}
               </p>
-              {archived.map((a) => (
-                <AccountCard
-                  key={a.id}
-                  account={a}
-                  onEdit={() => setSheet(a)}
-                  onArchive={() =>
-                    archiveMutation.mutate({
-                      id: a.id,
-                      isArchived: a.isArchived,
-                      excludeFromTotal: a.excludeFromTotal,
-                    })
-                  }
-                  onDelete={() => setDeleteTarget(a)}
-                  onMembers={() => setMembersTarget(a)}
-                />
-              ))}
+              <div className="grid gap-3 sm:grid-cols-2">
+                {archived.map((a) => (
+                  <AccountCard
+                    key={a.id}
+                    account={a}
+                    transactionCount={transactionCounts[a.id]}
+                    onEdit={() => setSheet(a)}
+                    onArchive={() =>
+                      archiveMutation.mutate({
+                        id: a.id,
+                        isArchived: a.isArchived,
+                        excludeFromTotal: a.excludeFromTotal,
+                      })
+                    }
+                    onDelete={() => setDeleteTarget(a)}
+                    onMembers={() => setMembersTarget(a)}
+                  />
+                ))}
+              </div>
             </section>
           )}
         </div>
