@@ -138,7 +138,7 @@ export default function AdminMetricsPage() {
 function AdminFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#f3f6f1] dark:bg-[#111110]">
-      <div className="mx-auto max-w-5xl px-4 pb-24 pt-6 sm:px-6">{children}</div>
+      <div className="mx-auto max-w-2xl px-4 pb-24 pt-6">{children}</div>
     </div>
   )
 }

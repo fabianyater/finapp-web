@@ -653,75 +653,70 @@ function AccountCard({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border bg-white dark:bg-[#1a1a18]",
+        "relative overflow-hidden rounded-2xl border bg-white px-4 py-3.5 dark:bg-[#1a1a18]",
         account.isArchived
           ? "border-gray-100 opacity-60 dark:border-[#2a2a28]"
-          : "border-violet-200 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#3a3348]",
+          : "border-gray-200 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#2a2a28]",
       )}
     >
-      <div className="px-4 pb-3 pt-3">
-        <div className="flex items-start gap-3">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-semibold"
-            style={{ backgroundColor: `${color}18`, color }}
-          >
-            {resolveIcon(account.icon)}
-          </div>
+      <span
+        aria-hidden
+        className="absolute inset-y-3 left-0 w-0.5 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <div className="flex items-start gap-3">
+        <div
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base"
+          style={{ backgroundColor: `${color}18` }}
+        >
+          {resolveIcon(account.icon)}
+        </div>
 
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-start justify-between gap-2">
-              <div className="min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+            <div className="min-w-0">
+              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                 <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {account.name}
                 </p>
-                <p className="truncate text-[11px] font-medium text-gray-400 dark:text-gray-500">
-                  {ACCOUNT_TYPE_LABELS[account.type]} · {account.currency}
-                  {account.isArchived ? " · Archivada" : ""}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-wrap justify-end gap-1">
-                {account.excludeFromTotal && (
-                  <span className="rounded-md bg-violet-50 px-1.5 py-0.5 text-[9px] font-semibold text-violet-600 dark:bg-violet-950/25 dark:text-violet-300">
-                    Excluida
-                  </span>
-                )}
                 {account.isDefault && (
-                  <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 dark:bg-amber-950/25 dark:text-amber-300">
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950/25 dark:text-amber-300">
                     Principal
                   </span>
                 )}
               </div>
+              <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                {ACCOUNT_TYPE_LABELS[account.type]} · {account.currency}
+                {account.isArchived ? " · Archivada" : ""}
+              </p>
             </div>
+            <div className="text-left sm:text-right">
+              <p className="text-base font-semibold tabular-nums text-gray-950 dark:text-white">
+                {fmt(account.currentBalance, account.currency)}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-gray-400 dark:text-gray-500">
+                Saldo actual
+              </p>
+            </div>
+          </div>
 
-            <p className="mt-2 text-lg font-bold leading-none tabular-nums text-gray-950 dark:text-white">
-              {fmt(account.currentBalance, account.currency)}
-            </p>
-            <p
-              className={cn(
-                "mt-1 text-[10px] font-medium",
-                account.initialBalance === 0
-                  ? "text-amber-600 dark:text-amber-400"
-                  : "text-gray-400 dark:text-gray-500",
-              )}
-            >
-              {account.initialBalance === 0
-                ? "Saldo inicial no configurado"
-                : `Saldo inicial ${fmt(account.initialBalance, account.currency)}`}
-            </p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+            <span className="tabular-nums">
+              Inicial {fmt(account.initialBalance, account.currency)}
+            </span>
+            <span aria-hidden className="text-gray-300 dark:text-gray-600">
+              ·
+            </span>
+            <span>{account.excludeFromTotal ? "Excluida del total" : "Incluida en el total"}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-0.5 border-t border-gray-100 bg-gray-50/60 px-3 py-1 dark:border-[#2a2a28] dark:bg-[#151513]">
-        <div className="mr-auto flex min-w-0 items-center gap-1 text-[10px] font-medium text-gray-400 dark:text-gray-500">
-          <span className="truncate">{account.type === "CREDIT_CARD" ? "Crédito" : "Cuenta"}</span>
-          <span aria-hidden>·</span>
-          <span className="truncate">{account.excludeFromTotal ? "Fuera del total" : "Incluida en total"}</span>
-        </div>
+      <div className="mt-3 flex items-center justify-end gap-0.5 border-t border-gray-100 pt-2 dark:border-[#2a2a28]">
         <div className="flex shrink-0 items-center gap-0.5">
           <button
             onClick={onMembers}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-[#252523] dark:hover:text-gray-200"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title="Miembros"
             aria-label={`Miembros de ${account.name}`}
           >
@@ -729,7 +724,7 @@ function AccountCard({
           </button>
           <button
             onClick={onEdit}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-[#252523] dark:hover:text-gray-200"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title="Editar"
             aria-label={`Editar ${account.name}`}
           >
@@ -737,7 +732,7 @@ function AccountCard({
           </button>
           <button
             onClick={onArchive}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-[#252523] dark:hover:text-gray-200"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title={account.isArchived ? "Desarchivar" : "Archivar"}
             aria-label={`${account.isArchived ? "Desarchivar" : "Archivar"} ${account.name}`}
           >
@@ -749,7 +744,7 @@ function AccountCard({
           </button>
           <button
             onClick={onDelete}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:text-gray-400 dark:hover:bg-rose-950/20"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
             title="Eliminar"
             aria-label={`Eliminar ${account.name}`}
           >
@@ -835,22 +830,21 @@ export default function AccountsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 pb-20">
-      <div className="mb-4">
-        <PageHeader title="Cuentas" className="flex items-center gap-2" />
-        <p className="ml-10 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-          Gestiona todas tus cuentas y saldos
-        </p>
-      </div>
-      <div className="mb-4">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <PageHeader title="Cuentas" className="flex items-center gap-2" />
+          <p className="ml-10 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            Gestiona tus cuentas y el saldo disponible.
+          </p>
+        </div>
         <button
           onClick={() => setSheet("create")}
-          className="flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          className="flex h-9 items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
         >
           <Plus size={14} />
-          Nueva Cuenta
+          Nueva cuenta
         </button>
       </div>
-
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -874,8 +868,8 @@ export default function AccountsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="space-y-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#2a2a28] dark:bg-[#1a1a18]">
-            <label className="relative block">
+          <div className="grid gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_1px_0_rgba(15,23,42,0.03)] dark:border-[#2a2a28] dark:bg-[#1a1a18] sm:grid-cols-[minmax(0,1fr)_9rem_10rem]">
+            <label className="relative block min-w-0">
               <Search
                 size={14}
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -884,7 +878,7 @@ export default function AccountsPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar cuenta..."
-                className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-400 dark:border-[#323230] dark:bg-[#121211] dark:text-gray-100"
+                className="h-10 w-full rounded-xl border border-transparent bg-gray-50 pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white dark:bg-[#121211] dark:text-gray-100"
               />
             </label>
             <select
@@ -892,7 +886,7 @@ export default function AccountsPage() {
               onChange={(event) =>
                 setTypeFilter(event.target.value as "ALL" | AccountDto["type"])
               }
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition-colors focus:border-emerald-400 dark:border-[#323230] dark:bg-[#121211] dark:text-gray-200"
+              className="h-10 w-full rounded-xl border border-transparent bg-gray-50 px-3 text-xs text-gray-700 outline-none transition-colors focus:border-emerald-400 focus:bg-white dark:bg-[#121211] dark:text-gray-200"
             >
               <option value="ALL">Todos los tipos</option>
               {ACCOUNT_TYPES.map((type) => (
@@ -906,7 +900,7 @@ export default function AccountsPage() {
               onChange={(event) =>
                 setSortBy(event.target.value as "NAME" | "BALANCE")
               }
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-700 outline-none transition-colors focus:border-emerald-400 dark:border-[#323230] dark:bg-[#121211] dark:text-gray-200"
+              className="h-10 w-full rounded-xl border border-transparent bg-gray-50 px-3 text-xs text-gray-700 outline-none transition-colors focus:border-emerald-400 focus:bg-white dark:bg-[#121211] dark:text-gray-200"
             >
               <option value="NAME">Nombre de la cuenta</option>
               <option value="BALANCE">Mayor saldo</option>

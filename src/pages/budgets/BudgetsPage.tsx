@@ -107,7 +107,7 @@ export default function BudgetsPage() {
   const withoutBudget = expenseCategories.filter((c) => !budgetMap[c.id] || c.id in inputs)
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-6">
       <PageHeader title="Presupuestos" />
       <p className="text-xs text-gray-400 dark:text-gray-500 mb-6 -mt-2">
         Límites mensuales de gasto por categoría.
