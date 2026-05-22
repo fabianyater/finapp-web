@@ -22,8 +22,8 @@ export default function CreateActionMenu({
           className="fade-in fixed inset-0 z-20 bg-black/10 backdrop-blur-[1px]"
         />
       )}
-      <div className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2">
-        <div className="pointer-events-none absolute bottom-16 left-1/2 flex -translate-x-1/2 items-center gap-2">
+      <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-40 sm:right-6">
+        <div className="pointer-events-none absolute bottom-16 right-0 flex flex-col items-end gap-2">
           <SatelliteAction
             open={open}
             icon={Receipt}
