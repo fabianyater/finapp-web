@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 import { type CategoryDto } from "@/api/categories";
-import { cn } from "@/lib/utils";
 import { resolveColor } from "../utils/colorUtils";
 
 export default function CategoryPicker({
