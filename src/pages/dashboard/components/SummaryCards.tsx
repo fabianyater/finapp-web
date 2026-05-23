@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { type AccountDto } from "@/api/accounts";
 import { cn } from "@/lib/utils";
+import { useCountingNumber } from "../hooks/useCountingNumber";
 import { fmt } from "../utils/formatters";
 import { TrendingDown, TrendingUp, ArrowLeftRight } from "lucide-react";
 
@@ -11,43 +12,6 @@ const TABS = [
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
-
-function useCountingNumber(target: number, enabled: boolean) {
-  const [value, setValue] = useState(target);
-  const valueRef = useRef(target);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
-    let frame = 0;
-    const start = valueRef.current;
-    const delta = target - start;
-    const startTime = performance.now();
-    const duration = 520;
-
-    const tick = (now: number) => {
-      const progress = Math.min((now - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const next = start + delta * eased;
-      valueRef.current = next;
-      setValue(next);
-
-      if (progress < 1) {
-        frame = requestAnimationFrame(tick);
-      } else {
-        valueRef.current = target;
-        setValue(target);
-      }
-    };
-
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [enabled, target]);
-
-  return enabled ? value : target;
-}
 
 export default function SummaryCards({
   selectedAccount,
@@ -137,7 +101,7 @@ export default function SummaryCards({
 
       <div className="mt-5 px-1 text-center">
         <p
-          className="text-[2.15rem] font-bold leading-none tabular-nums text-gray-700 sm:text-4xl dark:text-gray-100"
+          className="text-3xl font-bold leading-none tabular-nums text-gray-700 dark:text-gray-100"
         >
           {selectedAmount}
         </p>

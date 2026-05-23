@@ -1,4 +1,5 @@
 import { type AccountDto } from "@/api/accounts";
+import { useCountingNumber } from "../hooks/useCountingNumber";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function TotalBalanceDisplay({
@@ -10,6 +11,11 @@ export default function TotalBalanceDisplay({
   balanceVisible: boolean;
   onToggleVisible: () => void;
 }) {
+  const animatedBalance = useCountingNumber(
+    account.currentBalance,
+    balanceVisible,
+  );
+
   return (
     <div className="px-1 py-2">
       <div className="flex items-center gap-2 mb-1">
@@ -31,7 +37,7 @@ export default function TotalBalanceDisplay({
                 currency: account.currency,
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0,
-              }).format(account.currentBalance)
+              }).format(animatedBalance)
             : "******"}
         </span>
       </div>
