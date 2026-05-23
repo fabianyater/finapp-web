@@ -1,393 +1,186 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useForm, Controller, type Resolver, useWatch } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Plus, Pencil, Trash2, Loader2, X, Power, RepeatIcon, CalendarClock } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { recurringTransactionsApi } from '@/api/recurringTransactions'
-import { accountsApi } from '@/api/accounts'
-import { categoriesApi } from '@/api/categories'
-import { getApiErrorMessage } from '@/lib/apiErrors'
-import { toast } from '@/store/toast'
-import PageHeader from '@/components/PageHeader'
-import { MoneyInput } from '@/components/MoneyInput'
-import type { RecurringTransaction, RecurringFrequency } from '@/types'
-
-// ── constants ──────────────────────────────────────────────────────────────────
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Controller, type Resolver, useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  ArrowDownLeft,
+  ArrowLeftRight,
+  ArrowUpRight,
+  CalendarClock,
+  Loader2,
+  Pencil,
+  Plus,
+  Power,
+  RepeatIcon,
+  Tag,
+  Trash2,
+  Wallet,
+  X,
+} from "lucide-react";
+import { accountsApi } from "@/api/accounts";
+import { categoriesApi, type CategoryDto } from "@/api/categories";
+import { recurringTransactionsApi } from "@/api/recurringTransactions";
+import { MoneyInput } from "@/components/MoneyInput";
+import PageHeader from "@/components/PageHeader";
+import { getApiErrorMessage } from "@/lib/apiErrors";
+import { cn } from "@/lib/utils";
+import { toast } from "@/store/toast";
+import type { RecurringFrequency, RecurringTransaction } from "@/types";
+import {
+  iconBg,
+  iconGlow,
+  resolveColor,
+  resolveIcon,
+} from "@/pages/dashboard/utils/colorUtils";
 
 const FREQUENCY_LABELS: Record<RecurringFrequency, string> = {
-  DAILY: 'Diario',
-  WEEKLY: 'Semanal',
-  BIWEEKLY: 'Quincenal',
-  MONTHLY: 'Mensual',
-  YEARLY: 'Anual',
-}
+  DAILY: "Diario",
+  WEEKLY: "Semanal",
+  BIWEEKLY: "Quincenal",
+  MONTHLY: "Mensual",
+  YEARLY: "Anual",
+};
 
-const TYPE_LABELS: Record<string, string> = {
-  EXPENSE: 'Gasto',
-  INCOME: 'Ingreso',
-  TRANSFER: 'Transferencia',
-}
+const TYPE_LABELS: Record<RecurringTransaction["type"], string> = {
+  EXPENSE: "Gasto",
+  INCOME: "Ingreso",
+  TRANSFER: "Transferencia",
+};
 
-function fmt(amount: number, currency = 'COP') {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
+const schema = z.object({
+  accountId: z.string().min(1, "Cuenta requerida"),
+  categoryId: z.string().optional(),
+  type: z.enum(["EXPENSE", "INCOME", "TRANSFER"]),
+  amount: z.coerce.number().positive("El monto debe ser mayor a 0"),
+  description: z.string().min(1, "Descripcion requerida").max(200),
+  note: z.string().optional(),
+  frequency: z.enum(["DAILY", "WEEKLY", "BIWEEKLY", "MONTHLY", "YEARLY"]),
+  nextDueDate: z.string().min(1, "Fecha requerida"),
+});
+
+type FormData = z.infer<typeof schema>;
+
+function fmt(amount: number, currency = "COP") {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount)
+  }).format(amount);
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('es-CO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-// ── schema ─────────────────────────────────────────────────────────────────────
+function daysUntil(iso: string) {
+  const today = new Date();
+  const due = new Date(`${iso}T00:00:00`);
+  today.setHours(0, 0, 0, 0);
+  return Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
+}
 
-const schema = z.object({
-  accountId: z.string().min(1, 'Cuenta requerida'),
-  categoryId: z.string().optional(),
-  type: z.enum(['EXPENSE', 'INCOME', 'TRANSFER']),
-  amount: z.coerce.number().positive('El monto debe ser mayor a 0'),
-  description: z.string().min(1, 'Descripción requerida').max(200),
-  note: z.string().optional(),
-  frequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'YEARLY']),
-  nextDueDate: z.string().min(1, 'Fecha requerida'),
-})
-type FormData = z.infer<typeof schema>
+function dueLabel(iso: string) {
+  const days = daysUntil(iso);
+  if (days < 0) return `Vencida hace ${Math.abs(days)} d`;
+  if (days === 0) return "Vence hoy";
+  if (days === 1) return "Vence manana";
+  return `En ${days} d`;
+}
 
-// ── sheet ──────────────────────────────────────────────────────────────────────
-
-function RecurringSheet({
-  item,
-  onClose,
-}: {
-  item: RecurringTransaction | null
-  onClose: () => void
-}) {
-  const queryClient = useQueryClient()
-  const isEdit = !!item
-
-  const { data: accountsData } = useQuery({
-    queryKey: ['accounts'],
-    queryFn: accountsApi.list,
-  })
-  const accounts = accountsData?.data ?? []
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => categoriesApi.list(),
-  })
-
-  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema) as Resolver<FormData>,
-    defaultValues: {
-      accountId: item?.accountId ?? '',
-      categoryId: item?.categoryId ?? '',
-      type: (item?.type as FormData['type']) ?? 'EXPENSE',
-      amount: item?.amount ?? undefined,
-      description: item?.description ?? '',
-      note: item?.note ?? '',
-      frequency: (item?.frequency as FormData['frequency']) ?? 'MONTHLY',
-      nextDueDate: item?.nextDueDate ?? new Date().toISOString().slice(0, 10),
-    },
-  })
-
-  const selectedType = useWatch({ control, name: 'type' })
-  const selectedAccountId = useWatch({ control, name: 'accountId' })
-  const selectedAccountCurrency =
-    accounts.find((a) => a.id === selectedAccountId)?.currency ?? item?.currency ?? 'COP'
-
-  const filteredCategories = categories.filter((c) =>
-    selectedType === 'TRANSFER' ? false : c.type === selectedType
-  )
-
-  const createMutation = useMutation({
-    mutationFn: (d: FormData) =>
-      recurringTransactionsApi.create({
-        accountId: d.accountId,
-        categoryId: d.categoryId || undefined,
-        type: d.type,
-        amount: Math.round(d.amount),
-        description: d.description,
-        note: d.note || undefined,
-        frequency: d.frequency,
-        nextDueDate: d.nextDueDate,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] })
-      toast.success('Transacción recurrente creada')
-      onClose()
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo crear la transaccion recurrente')),
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: (d: FormData) =>
-      recurringTransactionsApi.update(item!.id, {
-        accountId: d.accountId,
-        categoryId: d.categoryId || undefined,
-        type: d.type,
-        amount: Math.round(d.amount),
-        description: d.description,
-        note: d.note || undefined,
-        frequency: d.frequency,
-        nextDueDate: d.nextDueDate,
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] })
-      toast.success('Transacción recurrente actualizada')
-      onClose()
-    },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo actualizar la transaccion recurrente')),
-  })
-
-  const isPending = createMutation.isPending || updateMutation.isPending
-
-  const onSubmit = (d: FormData) => {
-    if (isEdit) updateMutation.mutate(d)
-    else createMutation.mutate(d)
+function typeMeta(type: RecurringTransaction["type"]) {
+  if (type === "INCOME") {
+    return {
+      Icon: ArrowDownLeft,
+      amountPrefix: "+",
+      color: "#328758",
+      label: TYPE_LABELS.INCOME,
+    };
   }
-
-  return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white dark:bg-[#1c1c1a] shadow-xl flex flex-col overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#2a2a28]">
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">
-            {isEdit ? 'Editar' : 'Nueva'} transacción recurrente
-          </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-5">
-          {/* Type */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Tipo</label>
-            <Controller
-              name="type"
-              control={control}
-              render={({ field }) => (
-                <div className="grid grid-cols-3 gap-2">
-                  {(['EXPENSE', 'INCOME', 'TRANSFER'] as const).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => field.onChange(t)}
-                      className={cn(
-                        'py-2 rounded-xl text-sm font-medium border transition-colors',
-                        field.value === t
-                          ? t === 'EXPENSE'
-                            ? 'bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'
-                            : t === 'INCOME'
-                              ? 'bg-green-50 border-green-200 text-green-600 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400'
-                              : 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'
-                          : 'border-gray-200 dark:border-[#2a2a28] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#252523]'
-                      )}
-                    >
-                      {TYPE_LABELS[t]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            />
-          </div>
-
-          {/* Account */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Cuenta</label>
-            <select
-              {...register('accountId')}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-            >
-              <option value="">Seleccionar cuenta</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))}
-            </select>
-            {errors.accountId && <p className="text-xs text-red-500 mt-1">{errors.accountId.message}</p>}
-          </div>
-
-          {/* Category (hidden for transfers) */}
-          {selectedType !== 'TRANSFER' && (
-            <div>
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Categoría</label>
-              <select
-                {...register('categoryId')}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-              >
-                <option value="">Sin categoría</option>
-                {filteredCategories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Amount */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Monto</label>
-            <Controller
-              name="amount"
-              control={control}
-              render={({ field }) => (
-                <MoneyInput
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  currency={selectedAccountCurrency}
-                  placeholder="0"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                />
-              )}
-            />
-            {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Descripción</label>
-            <input
-              {...register('description')}
-              placeholder="Ej: Arriendo, Netflix, etc."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-            />
-            {errors.description && <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>}
-          </div>
-
-          {/* Note */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Nota (opcional)</label>
-            <input
-              {...register('note')}
-              placeholder="Nota adicional"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-            />
-          </div>
-
-          {/* Frequency */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Frecuencia</label>
-            <Controller
-              name="frequency"
-              control={control}
-              render={({ field }) => (
-                <div className="grid grid-cols-3 gap-2">
-                  {(Object.keys(FREQUENCY_LABELS) as RecurringFrequency[]).map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => field.onChange(f)}
-                      className={cn(
-                        'py-2 rounded-xl text-xs font-medium border transition-colors',
-                        field.value === f
-                          ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'
-                          : 'border-gray-200 dark:border-[#2a2a28] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#252523]'
-                      )}
-                    >
-                      {FREQUENCY_LABELS[f]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            />
-            {errors.frequency && <p className="text-xs text-red-500 mt-1">{errors.frequency.message}</p>}
-          </div>
-
-          {/* Next due date */}
-          <div>
-            <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">Próxima fecha</label>
-            <input
-              type="date"
-              {...register('nextDueDate')}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-            />
-            {errors.nextDueDate && <p className="text-xs text-red-500 mt-1">{errors.nextDueDate.message}</p>}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isPending}
-            className="mt-2 w-full py-2.5 rounded-xl bg-[#1a1a18] dark:bg-white text-white dark:text-[#1a1a18] text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {isPending && <Loader2 size={14} className="animate-spin" />}
-            {isEdit ? 'Guardar cambios' : 'Crear'}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
+  if (type === "TRANSFER") {
+    return {
+      Icon: ArrowLeftRight,
+      amountPrefix: "",
+      color: "#36778d",
+      label: TYPE_LABELS.TRANSFER,
+    };
+  }
+  return {
+    Icon: ArrowUpRight,
+    amountPrefix: "-",
+    color: "#a94e42",
+    label: TYPE_LABELS.EXPENSE,
+  };
 }
-
-// ── main page ──────────────────────────────────────────────────────────────────
 
 export default function RecurringTransactionsPage() {
-  const queryClient = useQueryClient()
-  const [sheet, setSheet] = useState<{ open: boolean; item: RecurringTransaction | null }>({
-    open: false,
-    item: null,
-  })
+  const queryClient = useQueryClient();
+  const [sheet, setSheet] = useState<{
+    open: boolean;
+    item: RecurringTransaction | null;
+  }>({ open: false, item: null });
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['recurring-transactions'],
+    queryKey: ["recurring-transactions"],
     queryFn: recurringTransactionsApi.list,
-  })
+  });
 
   const { data: accountsData } = useQuery({
-    queryKey: ['accounts'],
+    queryKey: ["accounts"],
     queryFn: accountsApi.list,
-  })
-  const accounts = accountsData?.data ?? []
+  });
+  const accounts = accountsData?.data ?? [];
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => categoriesApi.list(),
-  })
+    queryKey: ["categories"],
+    queryFn: categoriesApi.list,
+  });
 
   const accountName = (id: string) =>
-    accounts.find((a) => a.id === id)?.name ?? '–'
-
-  const categoryName = (id: string | null) =>
-    id ? (categories.find((c) => c.id === id)?.name ?? '–') : '–'
+    accounts.find((account) => account.id === id)?.name ?? "Sin cuenta";
+  const categoryFor = (id: string | null) =>
+    id ? categories.find((category) => category.id === id) : undefined;
 
   const toggleMutation = useMutation({
     mutationFn: (id: string) => recurringTransactionsApi.toggle(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] })
-      toast.success('Estado de la transaccion recurrente actualizado')
+      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+      toast.success("Estado actualizado");
     },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado')),
-  })
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo cambiar el estado")),
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => recurringTransactionsApi.remove(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recurring-transactions'] })
-      toast.success('Transacción recurrente eliminada')
+      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+      toast.success("Recurrente eliminada");
     },
-    onError: (error) => toast.error(getApiErrorMessage(error, 'No se pudo eliminar la transaccion recurrente')),
-  })
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo eliminar")),
+  });
 
-  const active = items.filter((i) => i.active)
-  const inactive = items.filter((i) => !i.active)
+  const active = items.filter((item) => item.active);
+  const inactive = items.filter((item) => !item.active);
 
   return (
-    <div className="min-h-screen bg-[#f3f6f1] dark:bg-[#111110]">
-      <div className="max-w-2xl mx-auto px-4 pt-6 pb-24">
-        <div className="flex items-center justify-between mb-6">
-          <PageHeader title="Recurrentes" back={false} className="flex items-center gap-2" />
+    <div className="min-h-screen bg-gray-50 dark:bg-[#111110]">
+      <div className="mx-auto max-w-2xl px-4 pb-24 pt-6">
+        <div className="mb-6 flex items-center justify-between">
+          <PageHeader
+            title="Recurrentes"
+            back={false}
+            className="flex items-center gap-2"
+          />
           <button
             onClick={() => setSheet({ open: true, item: null })}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1a1a18] dark:bg-white text-white dark:text-[#1a1a18] text-sm font-medium hover:opacity-90 transition-opacity"
+            className="flex items-center gap-1.5 rounded-full bg-emerald-700 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(29,86,56,0.24)] transition-all hover:-translate-y-0.5 hover:bg-emerald-800 dark:bg-white dark:text-[#1a1a18]"
           >
             <Plus size={14} />
             Nueva
@@ -401,8 +194,8 @@ export default function RecurringTransactionsPage() {
         )}
 
         {!isLoading && items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#1e1e1c] flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_16px_36px_rgba(32,28,24,0.1),0_1px_0_rgba(255,255,255,0.9)_inset] dark:bg-[#1e1e1c]">
               <RepeatIcon size={20} className="text-gray-400" />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -410,7 +203,7 @@ export default function RecurringTransactionsPage() {
             </p>
             <button
               onClick={() => setSheet({ open: true, item: null })}
-              className="text-sm text-blue-500 hover:underline"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/20"
             >
               Crear la primera
             </button>
@@ -419,16 +212,16 @@ export default function RecurringTransactionsPage() {
 
         {active.length > 0 && (
           <section className="mb-6">
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
               Activas · {active.length}
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {active.map((item) => (
                 <RecurringCard
                   key={item.id}
                   item={item}
                   accountLabel={accountName(item.accountId)}
-                  categoryLabel={categoryName(item.categoryId)}
+                  category={categoryFor(item.categoryId)}
                   onEdit={() => setSheet({ open: true, item })}
                   onToggle={() => toggleMutation.mutate(item.id)}
                   onDelete={() => deleteMutation.mutate(item.id)}
@@ -440,16 +233,16 @@ export default function RecurringTransactionsPage() {
 
         {inactive.length > 0 && (
           <section>
-            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
               Pausadas · {inactive.length}
             </p>
-            <div className="flex flex-col gap-2 opacity-60">
+            <div className="flex flex-col gap-3 opacity-70">
               {inactive.map((item) => (
                 <RecurringCard
                   key={item.id}
                   item={item}
                   accountLabel={accountName(item.accountId)}
-                  categoryLabel={categoryName(item.categoryId)}
+                  category={categoryFor(item.categoryId)}
                   onEdit={() => setSheet({ open: true, item })}
                   onToggle={() => toggleMutation.mutate(item.id)}
                   onDelete={() => deleteMutation.mutate(item.id)}
@@ -467,95 +260,421 @@ export default function RecurringTransactionsPage() {
         />
       )}
     </div>
-  )
+  );
 }
-
-// ── card ───────────────────────────────────────────────────────────────────────
 
 function RecurringCard({
   item,
   accountLabel,
-  categoryLabel,
+  category,
   onEdit,
   onToggle,
   onDelete,
 }: {
-  item: RecurringTransaction
-  accountLabel: string
-  categoryLabel: string
-  onEdit: () => void
-  onToggle: () => void
-  onDelete: () => void
+  item: RecurringTransaction;
+  accountLabel: string;
+  category?: CategoryDto;
+  onEdit: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
 }) {
-  const typeColor =
-    item.type === 'EXPENSE'
-      ? 'text-red-500'
-      : item.type === 'INCOME'
-        ? 'text-green-500'
-        : 'text-blue-500'
+  const meta = typeMeta(item.type);
+  const Icon = meta.Icon;
+  const accent =
+    item.type === "TRANSFER" ? meta.color : resolveColor(category?.color, meta.color);
+  const isOverdue = daysUntil(item.nextDueDate) < 0;
 
   return (
-    <div className="bg-white dark:bg-[#1c1c1a] rounded-2xl border border-gray-100 dark:border-[#2a2a28] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className={cn('text-xs font-semibold', typeColor)}>
-              {TYPE_LABELS[item.type]}
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500">
-              · {FREQUENCY_LABELS[item.frequency]}
-            </span>
-          </div>
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
-            {item.description}
-          </p>
-          <p className={cn('text-base font-bold mt-0.5', typeColor)}>
-            {item.type === 'EXPENSE' ? '−' : '+'}{fmt(item.amount, item.currency)}
-          </p>
-          <div className="flex items-center gap-3 mt-1.5">
-            <span className="text-xs text-gray-400 dark:text-gray-500">{accountLabel}</span>
-            {categoryLabel !== '–' && (
-              <>
-                <span className="text-xs text-gray-300 dark:text-gray-600">·</span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">{categoryLabel}</span>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <CalendarClock size={11} className="text-gray-400" />
-            <span className="text-xs text-gray-400 dark:text-gray-500">
-              Próxima: {fmtDate(item.nextDueDate)}
-            </span>
-          </div>
+    <div className="overflow-hidden rounded-3xl border border-white/80 bg-white p-4 shadow-[0_18px_42px_rgba(32,28,24,0.1),0_1px_0_rgba(255,255,255,0.9)_inset] dark:border-[#2a2a28] dark:bg-[#1c1c1a] dark:shadow-[0_18px_42px_rgba(0,0,0,0.24)]">
+      <div className="flex items-start gap-3">
+        <div
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl leading-none"
+          style={{
+            backgroundColor: iconBg(accent),
+            boxShadow: iconGlow(accent),
+            color: accent,
+          }}
+        >
+          {item.type === "TRANSFER" ? <Icon size={19} /> : resolveIcon(category?.icon)}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={onToggle}
-            title={item.active ? 'Pausar' : 'Activar'}
-            className={cn(
-              'w-8 h-8 flex items-center justify-center rounded-xl transition-colors',
-              item.active
-                ? 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
-                : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523]'
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
+                {item.description}
+              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                <span
+                  className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                  style={{ backgroundColor: iconBg(accent), color: accent }}
+                >
+                  {meta.label}
+                </span>
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-[#252523] dark:text-gray-400">
+                  {FREQUENCY_LABELS[item.frequency]}
+                </span>
+                {!item.active && (
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-400 dark:bg-[#252523]">
+                    Pausada
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0 text-right">
+              <p className="text-base font-bold leading-none tabular-nums text-gray-700 dark:text-gray-100">
+                {meta.amountPrefix}
+                {fmt(item.amount, item.currency)}
+              </p>
+              <p
+                className={cn(
+                  "mt-1 text-[10px] font-semibold",
+                  isOverdue
+                    ? "text-rose-500 dark:text-rose-400"
+                    : "text-gray-400 dark:text-gray-500",
+                )}
+              >
+                {dueLabel(item.nextDueDate)}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+            <InfoPill icon={Wallet} label={accountLabel} />
+            {category ? (
+              <InfoPill icon={Tag} label={category.name} />
+            ) : (
+              <InfoPill icon={Tag} label="Sin categoria" muted />
             )}
-          >
-            <Power size={14} />
-          </button>
-          <button
-            onClick={onEdit}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors"
-          >
-            <Pencil size={14} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-          >
-            <Trash2 size={14} />
-          </button>
+            <InfoPill icon={CalendarClock} label={fmtDate(item.nextDueDate)} />
+          </div>
+
+          <div className="mt-4 flex items-center justify-end gap-1">
+            <button
+              onClick={onToggle}
+              title={item.active ? "Pausar" : "Activar"}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                item.active
+                  ? "text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/20"
+                  : "text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523]",
+              )}
+            >
+              <Power size={14} />
+            </button>
+            <button
+              onClick={onEdit}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#252523] dark:hover:text-gray-200"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={onDelete}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-rose-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+function InfoPill({
+  icon: Icon,
+  label,
+  muted,
+}: {
+  icon: typeof Wallet;
+  label: string;
+  muted?: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "flex min-w-0 items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium dark:bg-[#252523]",
+        muted
+          ? "text-gray-400 dark:text-gray-500"
+          : "text-gray-500 dark:text-gray-300",
+      )}
+    >
+      <Icon size={12} className="shrink-0 text-gray-400 dark:text-gray-500" />
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
+function RecurringSheet({
+  item,
+  onClose,
+}: {
+  item: RecurringTransaction | null;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const isEdit = !!item;
+
+  const { data: accountsData } = useQuery({
+    queryKey: ["accounts"],
+    queryFn: accountsApi.list,
+  });
+  const accounts = accountsData?.data ?? [];
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: categoriesApi.list,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema) as Resolver<FormData>,
+    defaultValues: {
+      accountId: item?.accountId ?? "",
+      categoryId: item?.categoryId ?? "",
+      type: (item?.type as FormData["type"]) ?? "EXPENSE",
+      amount: item?.amount ?? undefined,
+      description: item?.description ?? "",
+      note: item?.note ?? "",
+      frequency: (item?.frequency as FormData["frequency"]) ?? "MONTHLY",
+      nextDueDate: item?.nextDueDate ?? new Date().toISOString().slice(0, 10),
+    },
+  });
+
+  const selectedType = useWatch({ control, name: "type" });
+  const selectedAccountId = useWatch({ control, name: "accountId" });
+  const selectedAccountCurrency =
+    accounts.find((account) => account.id === selectedAccountId)?.currency ??
+    item?.currency ??
+    "COP";
+
+  const filteredCategories = categories.filter((category) =>
+    selectedType === "TRANSFER" ? false : category.type === selectedType,
+  );
+
+  const createMutation = useMutation({
+    mutationFn: (data: FormData) =>
+      recurringTransactionsApi.create({
+        accountId: data.accountId,
+        categoryId: data.categoryId || undefined,
+        type: data.type,
+        amount: Math.round(data.amount),
+        description: data.description,
+        note: data.note || undefined,
+        frequency: data.frequency,
+        nextDueDate: data.nextDueDate,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+      toast.success("Recurrente creada");
+      onClose();
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo crear")),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: FormData) =>
+      recurringTransactionsApi.update(item!.id, {
+        accountId: data.accountId,
+        categoryId: data.categoryId || undefined,
+        type: data.type,
+        amount: Math.round(data.amount),
+        description: data.description,
+        note: data.note || undefined,
+        frequency: data.frequency,
+        nextDueDate: data.nextDueDate,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+      toast.success("Recurrente actualizada");
+      onClose();
+    },
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "No se pudo actualizar")),
+  });
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+  const inputClass =
+    "w-full rounded-2xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-700 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-[#2a2a28] dark:bg-[#252523] dark:text-gray-200 dark:focus:ring-emerald-950";
+
+  const onSubmit = (data: FormData) => {
+    if (isEdit) updateMutation.mutate(data);
+    else createMutation.mutate(data);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div
+        className="absolute inset-0 bg-black/35 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative flex w-full max-w-md flex-col overflow-y-auto bg-white shadow-[0_28px_80px_rgba(32,28,24,0.22)] dark:bg-[#1c1c1a] dark:shadow-2xl sm:m-3 sm:rounded-3xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white/95 px-5 py-4 backdrop-blur dark:border-[#2a2a28] dark:bg-[#1c1c1a]/95">
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">
+            {isEdit ? "Editar recurrente" : "Nueva recurrente"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-[#252523]"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 p-5">
+          <Field label="Tipo">
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-3 gap-1 rounded-full bg-gray-100 p-1 dark:bg-[#252523]">
+                  {(["EXPENSE", "INCOME", "TRANSFER"] as const).map((type) => {
+                    const selected = field.value === type;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => field.onChange(type)}
+                        className={cn(
+                          "rounded-full px-2 py-2 text-xs font-semibold transition-all",
+                          selected
+                            ? "bg-emerald-700 text-white shadow-sm dark:bg-white dark:text-[#1a1a18]"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400",
+                        )}
+                      >
+                        {TYPE_LABELS[type]}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            />
+          </Field>
+
+          <Field label="Cuenta" error={errors.accountId?.message}>
+            <select {...register("accountId")} className={inputClass}>
+              <option value="">Seleccionar cuenta</option>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          {selectedType !== "TRANSFER" && (
+            <Field label="Categoria">
+              <select {...register("categoryId")} className={inputClass}>
+                <option value="">Sin categoria</option>
+                {filteredCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+
+          <Field label="Monto" error={errors.amount?.message}>
+            <Controller
+              name="amount"
+              control={control}
+              render={({ field }) => (
+                <MoneyInput
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  currency={selectedAccountCurrency}
+                  placeholder="0"
+                  className={inputClass}
+                />
+              )}
+            />
+          </Field>
+
+          <Field label="Descripcion" error={errors.description?.message}>
+            <input
+              {...register("description")}
+              placeholder="Arriendo, salario, cuota..."
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="Nota">
+            <input
+              {...register("note")}
+              placeholder="Opcional"
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="Frecuencia" error={errors.frequency?.message}>
+            <Controller
+              name="frequency"
+              control={control}
+              render={({ field }) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.keys(FREQUENCY_LABELS) as RecurringFrequency[]).map(
+                    (frequency) => (
+                      <button
+                        key={frequency}
+                        type="button"
+                        onClick={() => field.onChange(frequency)}
+                        className={cn(
+                          "rounded-full border px-2 py-2 text-xs font-semibold transition-all",
+                          field.value === frequency
+                            ? "border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400"
+                            : "border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-[#2a2a28] dark:text-gray-400 dark:hover:bg-[#252523]",
+                        )}
+                      >
+                        {FREQUENCY_LABELS[frequency]}
+                      </button>
+                    ),
+                  )}
+                </div>
+              )}
+            />
+          </Field>
+
+          <Field label="Proxima fecha" error={errors.nextDueDate?.message}>
+            <input type="date" {...register("nextDueDate")} className={inputClass} />
+          </Field>
+
+          <button
+            type="submit"
+            disabled={isPending}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-emerald-700 py-3 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(29,86,56,0.24)] transition-all hover:bg-emerald-800 disabled:opacity-50 dark:bg-white dark:text-[#1a1a18]"
+          >
+            {isPending && <Loader2 size={14} className="animate-spin" />}
+            {isEdit ? "Guardar cambios" : "Crear"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-semibold text-gray-500 dark:text-gray-400">
+        {label}
+      </span>
+      {children}
+      {error && <span className="mt-1 block text-xs text-rose-500">{error}</span>}
+    </label>
+  );
 }
