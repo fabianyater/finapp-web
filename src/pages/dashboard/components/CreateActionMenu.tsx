@@ -67,7 +67,7 @@ export default function CreateActionMenu({
             'pointer-events-auto group flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full border-[3px] text-white transition-all duration-150',
             open
               ? 'border-white/35 bg-emerald-950 shadow-[0_18px_52px_rgba(0,0,0,0.52)]'
-              : 'border-[#f3f6f1] bg-emerald-700 shadow-[0_16px_38px_rgba(16,90,52,0.34)] hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_20px_46px_rgba(16,90,52,0.38)] dark:border-[#111110]',
+              : 'border-gray-50 bg-emerald-700 shadow-[0_16px_38px_rgba(29,86,56,0.28)] hover:-translate-y-0.5 hover:bg-emerald-800 hover:shadow-[0_20px_46px_rgba(29,86,56,0.34)] dark:border-[#111110]',
           )}
         >
           {open ? <X size={27} strokeWidth={2.4} /> : <Plus size={27} strokeWidth={2.4} />}
@@ -101,14 +101,14 @@ function SatelliteAction({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'pointer-events-auto flex h-14 min-w-[11.5rem] items-center gap-2.5 rounded-full border border-white/5 bg-[#1e1e1d] px-3 pr-5 text-sm font-semibold text-white shadow-[0_16px_42px_rgba(0,0,0,0.34)] transition-[opacity,transform,border-color,color,background-color] duration-150 ease-out',
+        'pointer-events-auto flex h-14 min-w-[11.5rem] items-center gap-2.5 rounded-full border border-gray-200 bg-white px-3 pr-5 text-sm font-semibold text-gray-800 shadow-[0_16px_42px_rgba(32,28,24,0.18)] transition-[opacity,transform,border-color,color,background-color] duration-150 ease-out dark:border-white/5 dark:bg-[#1e1e1d] dark:text-white dark:shadow-[0_16px_42px_rgba(0,0,0,0.34)]',
         delayClass,
         open
           ? 'translate-y-0 scale-100 opacity-100'
           : 'pointer-events-none translate-y-5 scale-90 opacity-0',
         disabled
           ? 'cursor-not-allowed opacity-45'
-          : 'hover:-translate-y-0.5 hover:border-white/15 hover:bg-[#252523]',
+          : 'hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 dark:hover:border-white/15 dark:hover:bg-[#252523]',
       )}
     >
       <span

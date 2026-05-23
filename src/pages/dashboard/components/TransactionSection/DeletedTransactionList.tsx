@@ -39,7 +39,7 @@ export default function DeletedTransactionList({
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28]"
+            className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28]"
           >
             <SkeletonRow />
           </div>
@@ -50,7 +50,7 @@ export default function DeletedTransactionList({
 
   if (deletedTxs.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28]">
+      <div className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28]">
         <EmptyState
           icon={Trash2}
           title="Sin transacciones eliminadas"
@@ -71,10 +71,10 @@ export default function DeletedTransactionList({
         return (
           <div
             key={tx.id}
-            className="bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 opacity-70"
+            className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 opacity-70"
           >
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
+              className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
               style={{ backgroundColor: iconBg(color) }}
             >
               {resolveIcon(cat?.icon)}

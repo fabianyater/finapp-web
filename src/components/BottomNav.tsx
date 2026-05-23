@@ -29,13 +29,13 @@ export default function BottomNav({
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div
         className={cn(
-          "pointer-events-auto relative mx-auto grid max-w-md gap-1 rounded-2xl border border-gray-200 bg-white/95 p-1.5 shadow-[0_-10px_40px_rgba(16,40,27,0.14)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95",
+          "pointer-events-auto relative mx-auto grid max-w-md gap-1 rounded-3xl border border-gray-200 bg-white/95 p-1.5 shadow-[0_-10px_40px_rgba(32,28,24,0.12)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95",
           reserveCreateSlot ? "grid-cols-5" : "grid-cols-4",
         )}
       >
         <span
           aria-hidden
-          className="absolute bottom-1.5 left-1.5 top-1.5 rounded-xl bg-emerald-700 shadow-sm transition-[transform,width] duration-300 ease-out dark:bg-white"
+          className="absolute bottom-1.5 left-1.5 top-1.5 rounded-2xl bg-emerald-700 shadow-sm transition-[transform,width] duration-300 ease-out dark:bg-white"
           style={{
             width: reserveCreateSlot
               ? "calc((100% - 1.75rem) / 5)"
@@ -55,7 +55,7 @@ export default function BottomNav({
             }}
             className={({ isActive }) =>
               cn(
-                "relative z-10 row-start-1 flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-semibold transition-colors duration-300",
+                "relative z-10 row-start-1 flex h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-2xl text-[10px] font-semibold transition-colors duration-300",
                 isActive
                   ? "text-white dark:text-[#1a1a18]"
                   : "cursor-pointer text-gray-400 dark:text-gray-500",

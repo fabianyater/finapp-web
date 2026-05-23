@@ -47,7 +47,7 @@ export default function AppLayout() {
   }, [profile, setMode])
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-[#f3f6f1] dark:bg-[#111110]">
+    <div className="flex h-dvh flex-col overflow-hidden bg-gray-50 dark:bg-[#111110]">
       <main className="min-h-0 flex-1 overflow-auto pb-24">
         <Outlet context={{ setDashboardAccountId } satisfies AppLayoutContext} />
       </main>

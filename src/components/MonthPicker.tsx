@@ -20,11 +20,11 @@ export default function MonthPicker({
   return (
     <>
       <div className="fixed inset-0 z-30" onClick={onClose} />
-      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-40 bg-white dark:bg-[#1a1a18] rounded-2xl border border-gray-100 dark:border-[#2a2a28] shadow-lg p-4 w-56">
+      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-40 bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28] shadow-lg p-4 w-56">
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => setPickerYear((y) => y - 1)}
-            className="w-6 h-6 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors"
           >
             <ChevronLeft size={14} />
           </button>
@@ -34,7 +34,7 @@ export default function MonthPicker({
           <button
             onClick={() => setPickerYear((y) => y + 1)}
             disabled={pickerYear >= now.getFullYear()}
-            className="w-6 h-6 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <ChevronRight size={14} />
           </button>
@@ -54,7 +54,7 @@ export default function MonthPicker({
                   onClose();
                 }}
                 className={cn(
-                  "py-1.5 rounded-lg text-xs font-medium transition-all",
+                  "py-1.5 rounded-full text-xs font-medium transition-all",
                   isSelected
                     ? "bg-emerald-500 text-white"
                     : isFuture

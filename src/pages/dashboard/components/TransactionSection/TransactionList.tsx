@@ -55,7 +55,7 @@ export default function TransactionList({
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28]"
+            className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28]"
           >
             <SkeletonRow />
           </div>
@@ -66,7 +66,7 @@ export default function TransactionList({
 
   if (txList.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28]">
+      <div className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28]">
         <EmptyState
           icon={Receipt}
           title="Sin transacciones"
@@ -144,13 +144,13 @@ export default function TransactionList({
                       isTransfer ? onSelectTransferTx(tx) : onSelectTx(tx)
                     }
                     className={cn(
-                      "fade-up bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 transition-all duration-200",
+                      "fade-up bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 transition-all duration-200",
                       "hover:-translate-y-px hover:shadow-sm hover:border-gray-200 dark:hover:border-[#3a3a38] cursor-pointer",
                     )}
                     style={{ animationDelay: `${idx * 40}ms` }}
                   >
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
+                      className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
                       style={{ backgroundColor: iconBg(color) }}
                     >
                       {isTransfer ? (
@@ -178,7 +178,7 @@ export default function TransactionList({
                           {tx.tags.map((tag) => (
                             <span
                               key={tag}
-                              className="px-1.5 py-px rounded text-[9px] font-medium bg-gray-100 dark:bg-[#252523] text-gray-400 dark:text-gray-500"
+                              className="px-1.5 py-px rounded-full text-[9px] font-medium bg-gray-100 dark:bg-[#252523] text-gray-400 dark:text-gray-500"
                             >
                               #{tag}
                             </span>

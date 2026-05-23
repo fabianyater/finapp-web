@@ -88,7 +88,7 @@ export default function SummaryCards({
                 "flex min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all duration-200 sm:text-xs",
                 !isActive
                   ? "text-gray-500 opacity-40 hover:opacity-75 dark:text-gray-400"
-                  : "bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900",
+                  : "bg-emerald-700 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900",
               )}
             >
               <Icon size={14} className="shrink-0" />

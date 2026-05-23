@@ -27,7 +27,7 @@ export default function CategoryBreakdown({
   if (!selectedAccountId) return null;
 
   return (
-    <div className="bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28] overflow-hidden">
+    <div className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28] overflow-hidden">
       <div className="px-4 pt-4 pb-0 flex items-center justify-between">
         <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
           {categoryView === "EXPENSE"
@@ -61,7 +61,7 @@ export default function CategoryBreakdown({
             {[52, 90, 120, 70, 100].map((h, i) => (
               <div
                 key={i}
-                className="flex-shrink-0 rounded-xl bg-gray-100 dark:bg-[#252523] animate-pulse"
+                className="flex-shrink-0 rounded-2xl bg-gray-100 dark:bg-[#252523] animate-pulse"
                 style={{ width: "54px", height: `${h}px` }}
               />
             ))}

@@ -3,20 +3,52 @@
 /* class-based dark mode via data-theme attribute on <html> */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+@theme {
+  --radius-sm: 0.75rem;
+  --radius-md: 0.95rem;
+  --radius-lg: 1.1rem;
+  --radius-xl: 1.35rem;
+  --radius-2xl: 1.75rem;
+  --radius-3xl: 2.25rem;
+}
+
 [data-theme="light"] {
-  --color-gray-50: #f3f6f1;
-  --color-gray-100: #e1e8df;
-  --color-gray-200: #ccd7ca;
-  --color-gray-300: #aebdac;
-  --color-emerald-50: #eaf7ef;
-  --color-emerald-100: #cbeed8;
-  --color-emerald-200: #a2dfb8;
-  --color-emerald-300: #74c993;
-  --color-emerald-400: #43ae6d;
-  --color-emerald-500: #208c53;
-  --color-emerald-600: #166f40;
-  --color-emerald-700: #105a34;
-  --color-emerald-800: #0d472a;
+  --color-white: #fffefa;
+  --color-gray-50: #f6f4ec;
+  --color-gray-100: #ece8dc;
+  --color-gray-200: #ddd6c8;
+  --color-gray-300: #c6bdaa;
+  --color-gray-400: #9f9584;
+  --color-gray-500: #7f7567;
+  --color-gray-600: #62594e;
+  --color-gray-700: #4b433a;
+  --color-gray-800: #312c26;
+  --color-gray-900: #201c18;
+  --color-emerald-50: #edf7ef;
+  --color-emerald-100: #d5ecd9;
+  --color-emerald-200: #b3dcc0;
+  --color-emerald-300: #86c59d;
+  --color-emerald-400: #56a977;
+  --color-emerald-500: #328758;
+  --color-emerald-600: #246b44;
+  --color-emerald-700: #1d5638;
+  --color-emerald-800: #18452f;
+  --color-blue-50: #eef5f7;
+  --color-blue-100: #d6e9ee;
+  --color-blue-200: #b2d5de;
+  --color-blue-300: #83b8c7;
+  --color-blue-400: #5294a8;
+  --color-blue-500: #36778d;
+  --color-blue-600: #2a6073;
+  --color-blue-700: #244f60;
+  --color-rose-50: #fbf1ee;
+  --color-rose-100: #f5ddd7;
+  --color-rose-200: #ebbbb1;
+  --color-rose-300: #dd9082;
+  --color-rose-400: #c66a5b;
+  --color-rose-500: #a94e42;
+  --color-rose-600: #8d3f36;
+  --color-rose-700: #74362f;
 }
 
 @utility scrollbar-hide {
