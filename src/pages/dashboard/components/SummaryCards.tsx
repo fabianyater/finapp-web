@@ -65,7 +65,6 @@ export default function SummaryCards({
   totalIncome: number;
   totalExpense: number;
   totalTransfers: number;
-  balance: number;
   currency: string;
   onSetCategoryView: (v: "EXPENSE" | "INCOME") => void;
 }) {
@@ -138,7 +137,7 @@ export default function SummaryCards({
 
       <div className="mt-5 px-1 text-center">
         <p
-          className="text-[2.15rem] font-bold leading-none tabular-nums text-gray-900 sm:text-4xl dark:text-gray-100"
+          className="text-[2.15rem] font-bold leading-none tabular-nums text-gray-700 sm:text-4xl dark:text-gray-100"
         >
           {selectedAmount}
         </p>

@@ -55,14 +55,6 @@ export default function DashboardPage() {
     (a) => a.id === dashState.selectedAccountId,
   );
   const currency = selectedAccount?.currency ?? "COP";
-  const includedAccounts = dashData.accounts.filter((a) => !a.excludeFromTotal);
-  const totalByCurrency = includedAccounts.reduce<Record<string, number>>(
-    (acc, a) => {
-      acc[a.currency] = (acc[a.currency] ?? 0) + a.currentBalance;
-      return acc;
-    },
-    {},
-  );
   const totalIncome = dashData.transactions
     .filter((t) => t.type === "INCOME")
     .reduce((s, t) => s + t.amount, 0);
@@ -72,7 +64,6 @@ export default function DashboardPage() {
   const totalTransfers = dashData.transactions
     .filter((t) => t.type === "TRANSFER")
     .reduce((s, t) => s + t.amount, 0);
-  const balance = selectedAccount?.currentBalance ?? 0;
   const categoryMap = new Map(dashData.categories.map((c) => [c.id, c]));
   const recentTxs = dashData.transactions.slice(0, 10);
 
@@ -157,11 +148,9 @@ export default function DashboardPage() {
         onSelectAccount={dashState.setSelectedAccountId}
       />
 
-      {includedAccounts.length > 0 && (
+      {selectedAccount && (
         <TotalBalanceDisplay
-          includedAccounts={includedAccounts}
-          accounts={dashData.accounts}
-          totalByCurrency={totalByCurrency}
+          account={selectedAccount}
           balanceVisible={dashState.balanceVisible}
           onToggleVisible={dashState.toggleBalanceVisible}
         />
@@ -186,7 +175,6 @@ export default function DashboardPage() {
         totalIncome={totalIncome}
         totalExpense={totalExpense}
         totalTransfers={totalTransfers}
-        balance={balance}
         currency={currency}
         onSetCategoryView={dashState.setCategoryView}
       />

@@ -2,13 +2,11 @@ import { type AccountDto } from "@/api/accounts";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function TotalBalanceDisplay({
-  totalByCurrency,
+  account,
   balanceVisible,
   onToggleVisible,
 }: {
-  includedAccounts: AccountDto[];
-  accounts: AccountDto[];
-  totalByCurrency: Record<string, number>;
+  account: AccountDto;
   balanceVisible: boolean;
   onToggleVisible: () => void;
 }) {
@@ -16,7 +14,7 @@ export default function TotalBalanceDisplay({
     <div className="px-1 py-2">
       <div className="flex items-center gap-2 mb-1">
         <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
-          Saldo total
+          Balance actual
         </p>
         <button
           onClick={onToggleVisible}
@@ -26,21 +24,16 @@ export default function TotalBalanceDisplay({
         </button>
       </div>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        {Object.entries(totalByCurrency).map(([cur, total]) => (
-          <span
-            key={cur}
-            className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-50 tabular-nums"
-          >
-            {balanceVisible
-              ? new Intl.NumberFormat("es-CO", {
-                  style: "currency",
-                  currency: cur,
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                }).format(total)
-              : "••••••"}
-          </span>
-        ))}
+        <span className="text-4xl font-bold tracking-tight text-gray-700 dark:text-gray-50 tabular-nums">
+          {balanceVisible
+            ? new Intl.NumberFormat("es-CO", {
+                style: "currency",
+                currency: account.currency,
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }).format(account.currentBalance)
+            : "******"}
+        </span>
       </div>
     </div>
   );
