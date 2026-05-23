@@ -106,12 +106,15 @@ export default function SummaryCards({
 
   return (
     <div>
-      <div className="relative h-11 rounded-full p-1">
+      <div className="relative h-11 overflow-hidden rounded-full p-1">
+        <div
+          className="absolute inset-y-1 left-1 grid w-[calc(100%-0.5rem)] grid-cols-3 gap-1 transition-transform duration-300 ease-out"
+          style={{
+            transform: `translateX(calc(${1 - activeIndex} * ((100% + 0.5rem) / 3)))`,
+          }}
+        >
         {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = activeTab === key;
-          const tabIndex = TABS.findIndex((tab) => tab.key === key);
-          const offset = (tabIndex - activeIndex + TABS.length) % TABS.length;
-          const slot = offset === 0 ? 1 : offset === 1 ? 2 : 0;
 
           return (
             <button
@@ -119,20 +122,18 @@ export default function SummaryCards({
               type="button"
               onClick={() => handleSelect(key)}
               className={cn(
-                "absolute bottom-1 left-1 top-1 flex w-[calc((100%-0.5rem)/3)] min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all duration-300 ease-out sm:text-xs",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition-all duration-200 sm:text-xs",
                 !isActive
-                  ? "z-0 text-gray-500 opacity-40 hover:opacity-75 dark:text-gray-400"
-                  : "z-10 bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900",
+                  ? "text-gray-500 opacity-40 hover:opacity-75 dark:text-gray-400"
+                  : "bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900",
               )}
-              style={{
-                transform: `translateX(calc(${slot} * (100% + 0.25rem)))`,
-              }}
             >
               <Icon size={14} className="shrink-0" />
               <span className="min-w-0 truncate">{label}</span>
             </button>
           );
         })}
+        </div>
       </div>
 
       <div className="mt-5 px-1 text-center">
