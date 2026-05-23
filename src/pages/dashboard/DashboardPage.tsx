@@ -69,6 +69,9 @@ export default function DashboardPage() {
   const totalExpense = dashData.transactions
     .filter((t) => t.type === "EXPENSE")
     .reduce((s, t) => s + t.amount, 0);
+  const totalTransfers = dashData.transactions
+    .filter((t) => t.type === "TRANSFER")
+    .reduce((s, t) => s + t.amount, 0);
   const balance = selectedAccount?.currentBalance ?? 0;
   const categoryMap = new Map(dashData.categories.map((c) => [c.id, c]));
   const recentTxs = dashData.transactions.slice(0, 10);
@@ -182,6 +185,7 @@ export default function DashboardPage() {
         balanceVisible={dashState.balanceVisible}
         totalIncome={totalIncome}
         totalExpense={totalExpense}
+        totalTransfers={totalTransfers}
         balance={balance}
         currency={currency}
         onSetCategoryView={dashState.setCategoryView}
