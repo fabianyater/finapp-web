@@ -27,7 +27,7 @@ export default function CategoryBreakdown({
   if (!selectedAccountId) return null;
 
   return (
-    <div className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28] overflow-hidden">
+    <div className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-white/80 dark:border-[#2a2a28] overflow-hidden shadow-[0_18px_42px_rgba(32,28,24,0.09),0_1px_0_rgba(255,255,255,0.9)_inset] dark:shadow-[0_18px_42px_rgba(0,0,0,0.24)]">
       <div className="px-4 pt-4 pb-0 flex items-center justify-between">
         <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
           {categoryView === "EXPENSE"

@@ -40,6 +40,14 @@ export function iconBg(hex: string) {
   return `rgba(${r},${g},${b},0.14)`;
 }
 
+export function iconGlow(hex: string) {
+  const h = hex.startsWith("#") ? hex : `#${hex}`;
+  const r = parseInt(h.slice(1, 3), 16);
+  const g = parseInt(h.slice(3, 5), 16);
+  const b = parseInt(h.slice(5, 7), 16);
+  return `0 10px 24px rgba(${r},${g},${b},0.22), 0 2px 8px rgba(${r},${g},${b},0.14)`;
+}
+
 export function resolveColor(raw?: string, fallback = "#9ca3af") {
   if (!raw) return fallback;
   return raw.startsWith("#") ? raw : `#${raw}`;

@@ -97,6 +97,14 @@ function resolveIcon(key?: string) {
 
 // ── form schema ───────────────────────────────────────────────────────────────
 
+function colorGlow(hex: string) {
+  const h = hex.startsWith("#") ? hex : `#${hex}`;
+  const r = parseInt(h.slice(1, 3), 16);
+  const g = parseInt(h.slice(3, 5), 16);
+  const b = parseInt(h.slice(5, 7), 16);
+  return `0 10px 24px rgba(${r},${g},${b},0.22), 0 2px 8px rgba(${r},${g},${b},0.14)`;
+}
+
 const schema = z.object({
   name: z.string().min(1, "El nombre es requerido").max(80),
   type: z.enum(["CASH", "BANK", "CREDIT_CARD"]),
@@ -687,10 +695,10 @@ function AccountCard({
   return (
     <div
       className={cn(
-        "relative flex min-h-[13rem] flex-col overflow-hidden rounded-2xl border bg-white p-4 dark:bg-[#1a1a18]",
+        "relative flex min-h-[13rem] flex-col overflow-hidden rounded-3xl border bg-white p-4 dark:bg-[#1a1a18]",
         account.isArchived
           ? "border-gray-100 opacity-60 dark:border-[#2a2a28]"
-          : "border-gray-100 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_rgba(15,23,42,0.05)] dark:border-[#2a2a28] dark:shadow-[0_1px_2px_rgba(0,0,0,0.18),0_12px_28px_rgba(0,0,0,0.2)]",
+          : "border-white/80 shadow-[0_18px_42px_rgba(32,28,24,0.1),0_1px_0_rgba(255,255,255,0.9)_inset] dark:border-[#2a2a28] dark:shadow-[0_18px_42px_rgba(0,0,0,0.24)]",
       )}
     >
       {account.isDefault && (
@@ -701,8 +709,12 @@ function AccountCard({
 
       <div className="flex items-start gap-3 pr-0">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
-          style={{ backgroundColor: `${color}18`, color }}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-sm font-bold"
+          style={{
+            backgroundColor: `${color}18`,
+            boxShadow: colorGlow(color),
+            color,
+          }}
         >
           {resolveIcon(account.icon)}
         </div>

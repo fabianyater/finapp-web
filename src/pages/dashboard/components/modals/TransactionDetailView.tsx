@@ -1,6 +1,6 @@
 import { type TransactionListDto } from "@/api/transactions";
 import { cn } from "@/lib/utils";
-import { iconBg, resolveColor, resolveIcon } from "../../utils/colorUtils";
+import { iconBg, iconGlow, resolveColor, resolveIcon } from "../../utils/colorUtils";
 import { fmt, fmtDateFull } from "../../utils/formatters";
 
 export default function TransactionDetailView({
@@ -39,7 +39,10 @@ export default function TransactionDetailView({
       <div className="flex flex-col items-center gap-2 pt-6 pb-4 px-5">
         <div
           className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl leading-none mb-1"
-          style={{ backgroundColor: iconBg(color) }}
+          style={{
+            backgroundColor: iconBg(color),
+            boxShadow: iconGlow(color),
+          }}
         >
           {resolveIcon(category?.icon)}
         </div>

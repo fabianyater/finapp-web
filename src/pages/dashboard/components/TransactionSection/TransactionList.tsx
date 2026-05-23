@@ -4,7 +4,7 @@ import { type TransactionListDto } from "@/api/transactions";
 import EmptyState from "@/components/EmptyState";
 import SkeletonRow from "@/components/SkeletonRow";
 import { cn } from "@/lib/utils";
-import { iconBg, resolveColor, resolveIcon } from "../../utils/colorUtils";
+import { iconBg, iconGlow, resolveColor, resolveIcon } from "../../utils/colorUtils";
 import { fmt, fmtDate } from "../../utils/formatters";
 import { groupByDay, dayTotal } from "../../utils/transactionGrouping";
 import { ArrowLeftRight, Receipt } from "lucide-react";
@@ -144,14 +144,17 @@ export default function TransactionList({
                       isTransfer ? onSelectTransferTx(tx) : onSelectTx(tx)
                     }
                     className={cn(
-                      "fade-up bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 transition-all duration-200",
-                      "hover:-translate-y-px hover:shadow-sm hover:border-gray-200 dark:hover:border-[#3a3a38] cursor-pointer",
+                      "fade-up bg-white dark:bg-[#1a1a18] rounded-3xl border border-white/80 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 transition-all duration-200",
+                      "shadow-[0_12px_30px_rgba(32,28,24,0.07),0_1px_0_rgba(255,255,255,0.85)_inset] dark:shadow-[0_14px_34px_rgba(0,0,0,0.22)] hover:-translate-y-px hover:shadow-[0_16px_36px_rgba(32,28,24,0.11),0_1px_0_rgba(255,255,255,0.9)_inset] hover:border-gray-200 dark:hover:border-[#3a3a38] cursor-pointer",
                     )}
                     style={{ animationDelay: `${idx * 40}ms` }}
                   >
                     <div
                       className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
-                      style={{ backgroundColor: iconBg(color) }}
+                      style={{
+                        backgroundColor: iconBg(color),
+                        boxShadow: iconGlow(color),
+                      }}
                     >
                       {isTransfer ? (
                         <ArrowLeftRight size={16} style={{ color }} />

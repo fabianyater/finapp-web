@@ -29,7 +29,7 @@ export default function BottomNav({
     <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div
         className={cn(
-          "pointer-events-auto relative mx-auto grid max-w-md gap-1 rounded-3xl border border-gray-200 bg-white/95 p-1.5 shadow-[0_-10px_40px_rgba(32,28,24,0.12)] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95",
+          "pointer-events-auto relative mx-auto grid max-w-md gap-1 rounded-3xl border border-white/80 bg-white/95 p-1.5 shadow-[0_-16px_46px_rgba(32,28,24,0.16),0_1px_0_rgba(255,255,255,0.9)_inset] backdrop-blur dark:border-[#2a2a28] dark:bg-[#171715]/95 dark:shadow-[0_-16px_46px_rgba(0,0,0,0.32)]",
           reserveCreateSlot ? "grid-cols-5" : "grid-cols-4",
         )}
       >

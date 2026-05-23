@@ -2,7 +2,7 @@ import { type AccountDto } from "@/api/accounts";
 import NotificationBell from "@/components/NotificationBell";
 import UserMenu from "@/components/UserMenu";
 import { cn } from "@/lib/utils";
-import { resolveColor, resolveIcon } from "../utils/colorUtils";
+import { iconGlow, resolveColor, resolveIcon } from "../utils/colorUtils";
 import { ChevronDown, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -52,7 +52,7 @@ function AccountMenu({
     <div ref={ref} className="relative min-w-0">
       <button
         onClick={() => setOpen((value) => !value)}
-        className="flex h-10 min-w-0 max-w-[15rem] items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 text-left shadow-sm transition-colors hover:border-gray-300 dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:hover:border-[#3a3a38]"
+        className="flex h-10 min-w-0 max-w-[15rem] items-center gap-2 rounded-full border border-white/80 bg-white/90 px-2.5 text-left shadow-[0_10px_28px_rgba(32,28,24,0.08),0_1px_0_rgba(255,255,255,0.85)_inset] backdrop-blur transition-colors hover:border-gray-200 dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:shadow-[0_12px_28px_rgba(0,0,0,0.24)] dark:hover:border-[#3a3a38]"
       >
         <AccountDot color={selected?.color} icon={selected?.icon} />
         <span className="min-w-0 flex-1">
@@ -67,7 +67,7 @@ function AccountMenu({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-12 z-40 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-gray-200 bg-white p-1.5 shadow-2xl dark:border-[#2a2a28] dark:bg-[#1a1a18]">
+        <div className="absolute left-0 top-12 z-40 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-white/80 bg-white/95 p-1.5 shadow-[0_22px_60px_rgba(32,28,24,0.16),0_1px_0_rgba(255,255,255,0.9)_inset] backdrop-blur dark:border-[#2a2a28] dark:bg-[#1a1a18] dark:shadow-2xl">
           <div className="max-h-72 overflow-y-auto">
             {accounts.map((account) => {
               const active = account.id === selectedAccountId;
@@ -117,7 +117,10 @@ function AccountDot({ color, icon }: { color?: string; icon?: string }) {
   return (
     <span
       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm shadow-sm"
-      style={{ backgroundColor: `${resolveColor(color)}24` }}
+      style={{
+        backgroundColor: `${resolveColor(color)}24`,
+        boxShadow: iconGlow(resolveColor(color)),
+      }}
     >
       {resolveIcon(icon)}
     </span>

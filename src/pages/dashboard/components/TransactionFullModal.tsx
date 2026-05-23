@@ -4,7 +4,7 @@ import { transactionsApi, type TransactionListDto } from "@/api/transactions";
 import EmptyState from "@/components/EmptyState";
 import SkeletonRow from "@/components/SkeletonRow";
 import { cn } from "@/lib/utils";
-import { iconBg, resolveColor, resolveIcon } from "../utils/colorUtils";
+import { iconBg, iconGlow, resolveColor, resolveIcon } from "../utils/colorUtils";
 import { fmt, fmtDate } from "../utils/formatters";
 import { groupByDay, dayTotal } from "../utils/transactionGrouping";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
@@ -174,7 +174,7 @@ export default function TransactionFullModal({
         className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50"
         onClick={onClose}
       />
-      <div className="fixed inset-y-0 left-1/2 z-50 flex w-full max-w-2xl -translate-x-1/2 flex-col bg-white shadow-2xl dark:bg-[#1a1a18] sm:inset-y-4 sm:w-[calc(100%-2rem)] sm:rounded-2xl sm:border sm:border-gray-100 dark:sm:border-[#2a2a28]">
+      <div className="fixed inset-y-0 left-1/2 z-50 flex w-full max-w-2xl -translate-x-1/2 flex-col bg-white shadow-[0_28px_80px_rgba(32,28,24,0.22)] dark:bg-[#1a1a18] dark:shadow-2xl sm:inset-y-4 sm:w-[calc(100%-2rem)] sm:rounded-3xl sm:border sm:border-white/80 dark:sm:border-[#2a2a28]">
         <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#2a2a28]">
           <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
             Todas las transacciones
@@ -419,14 +419,17 @@ export default function TransactionFullModal({
                                   : onSelectTx(tx)
                               }
                               className={cn(
-                                "fade-up bg-white dark:bg-[#1a1a18] rounded-xl border border-gray-100 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 transition-all duration-200",
-                                "hover:-translate-y-px hover:shadow-sm hover:border-gray-200 dark:hover:border-[#3a3a38] cursor-pointer",
+                                "fade-up bg-white dark:bg-[#1a1a18] rounded-3xl border border-white/80 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 transition-all duration-200",
+                                "shadow-[0_12px_30px_rgba(32,28,24,0.07),0_1px_0_rgba(255,255,255,0.85)_inset] dark:shadow-[0_14px_34px_rgba(0,0,0,0.22)] hover:-translate-y-px hover:shadow-[0_16px_36px_rgba(32,28,24,0.11),0_1px_0_rgba(255,255,255,0.9)_inset] hover:border-gray-200 dark:hover:border-[#3a3a38] cursor-pointer",
                               )}
                               style={{ animationDelay: `${idx * 40}ms` }}
                             >
                               <div
-                                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
-                                style={{ backgroundColor: iconBg(color) }}
+                                className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
+                                style={{
+                                  backgroundColor: iconBg(color),
+                                  boxShadow: iconGlow(color),
+                                }}
                               >
                                 {isTransfer ? (
                                   <ArrowLeftRight

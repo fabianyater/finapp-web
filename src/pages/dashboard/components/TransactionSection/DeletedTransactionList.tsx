@@ -3,7 +3,7 @@ import { type DeletedTransactionDto } from "@/api/transactions";
 import EmptyState from "@/components/EmptyState";
 import SkeletonRow from "@/components/SkeletonRow";
 import { cn } from "@/lib/utils";
-import { iconBg, resolveColor, resolveIcon } from "../../utils/colorUtils";
+import { iconBg, iconGlow, resolveColor, resolveIcon } from "../../utils/colorUtils";
 import { fmt, fmtDate } from "../../utils/formatters";
 import { Trash2 } from "lucide-react";
 
@@ -71,11 +71,14 @@ export default function DeletedTransactionList({
         return (
           <div
             key={tx.id}
-            className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-gray-100 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 opacity-70"
+            className="bg-white dark:bg-[#1a1a18] rounded-3xl border border-white/80 dark:border-[#2a2a28] px-4 py-3 flex items-center gap-3 opacity-70 shadow-[0_12px_30px_rgba(32,28,24,0.07),0_1px_0_rgba(255,255,255,0.85)_inset] dark:shadow-[0_14px_34px_rgba(0,0,0,0.22)]"
           >
             <div
               className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0 text-lg leading-none"
-              style={{ backgroundColor: iconBg(color) }}
+              style={{
+                backgroundColor: iconBg(color),
+                boxShadow: iconGlow(color),
+              }}
             >
               {resolveIcon(cat?.icon)}
             </div>
