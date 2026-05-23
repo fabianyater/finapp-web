@@ -56,7 +56,6 @@ export default function SummaryCards({
   totalIncome,
   totalExpense,
   totalTransfers,
-  balance,
   currency,
   onSetCategoryView,
 }: {
@@ -88,7 +87,6 @@ export default function SummaryCards({
       : activeTab === "EXPENSE"
         ? totalExpense
         : totalTransfers;
-  const animatedBalance = useCountingNumber(balance, balanceVisible);
   const animatedSelectedTotal = useCountingNumber(
     selectedTotal,
     balanceVisible,
@@ -97,12 +95,7 @@ export default function SummaryCards({
   if (!selectedAccount) return null;
 
   const hiddenAmount = "******";
-  const activeColor =
-    activeTab === "INCOME"
-      ? "emerald"
-      : activeTab === "EXPENSE"
-        ? "rose"
-        : "blue";
+  const activeIndex = TABS.findIndex(({ key }) => key === activeTab);
 
   const selectedAmount = (() => {
     if (!balanceVisible) return hiddenAmount;
@@ -113,7 +106,14 @@ export default function SummaryCards({
 
   return (
     <div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="relative grid grid-cols-3 gap-1 rounded-full p-1">
+        <div
+          className="absolute bottom-1 left-1 top-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-gray-900 shadow-sm transition-transform duration-300 ease-out dark:bg-gray-100"
+          style={{
+            transform: `translateX(calc(${activeIndex} * (100% + 0.25rem)))`,
+          }}
+        />
+
         {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = activeTab === key;
 
@@ -123,19 +123,10 @@ export default function SummaryCards({
               type="button"
               onClick={() => handleSelect(key)}
               className={cn(
-                "flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-2.5 py-2 text-[11px] font-semibold shadow-sm transition-all duration-200 sm:text-xs",
-                isActive && key === "INCOME"
-                  ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "",
-                isActive && key === "EXPENSE"
-                  ? "border-rose-500 bg-rose-500 text-white"
-                  : "",
-                isActive && key === "TRANSFER"
-                  ? "border-blue-500 bg-blue-500 text-white"
-                  : "",
+                "relative z-10 flex min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-2 text-[11px] font-semibold transition-all duration-200 sm:text-xs",
                 !isActive
-                  ? "border-gray-200 bg-white/80 text-gray-500 opacity-55 hover:opacity-80 dark:border-[#343432] dark:bg-[#242421] dark:text-gray-400"
-                  : "",
+                  ? "text-gray-500 opacity-45 hover:opacity-75 dark:text-gray-400"
+                  : "text-white dark:text-gray-900",
               )}
             >
               <Icon size={14} className="shrink-0" />
@@ -145,33 +136,8 @@ export default function SummaryCards({
         })}
       </div>
 
-      <div className="mt-3 px-1">
-        <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-          Balance actual
-        </p>
-        <p
-          className={cn(
-            "text-[2.15rem] font-bold leading-none tabular-nums sm:text-4xl",
-            balance >= 0
-              ? "text-gray-900 dark:text-gray-100"
-              : "text-rose-500 dark:text-rose-400",
-          )}
-        >
-          {balanceVisible ? fmt(animatedBalance, currency) : hiddenAmount}
-        </p>
-      </div>
-
-      <div
-        className={cn(
-          "-mx-4 mt-4 rounded-2xl px-4 py-4 transition-colors",
-          activeColor === "emerald"
-            ? "bg-emerald-50/80 dark:bg-emerald-950/20"
-            : "",
-          activeColor === "rose" ? "bg-rose-50/80 dark:bg-rose-950/20" : "",
-          activeColor === "blue" ? "bg-blue-50/80 dark:bg-blue-950/20" : "",
-        )}
-      >
-        <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+      <div className="mt-5 px-1 text-center">
+        <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
           {activeTab === "INCOME"
             ? "Ingresos totales"
             : activeTab === "EXPENSE"
@@ -179,16 +145,7 @@ export default function SummaryCards({
               : "Transferencias totales"}
         </p>
         <p
-          className={cn(
-            "text-2xl font-bold leading-tight tabular-nums",
-            balanceVisible
-              ? activeColor === "emerald"
-                ? "text-emerald-600 dark:text-emerald-400"
-                : activeColor === "rose"
-                  ? "text-rose-500 dark:text-rose-400"
-                  : "text-blue-600 dark:text-blue-400"
-              : "text-gray-400 dark:text-gray-500",
-          )}
+          className="text-[2.15rem] font-bold leading-none tabular-nums text-gray-900 sm:text-4xl dark:text-gray-100"
         >
           {selectedAmount}
         </p>
