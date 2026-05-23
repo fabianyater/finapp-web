@@ -103,13 +103,11 @@ export default function TransactionEditForm({
           <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">
             Categoría
           </label>
-          <div className="flex flex-wrap gap-2">
-            <CategoryPicker
-              categories={filteredCats}
-              selectedId={categoryId}
-              onSelect={onCategoryIdChange}
-            />
-          </div>
+          <CategoryPicker
+            categories={filteredCats}
+            selectedId={categoryId}
+            onSelect={onCategoryIdChange}
+          />
         </div>
 
         <div>

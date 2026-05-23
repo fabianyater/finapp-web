@@ -181,39 +181,54 @@ export default function AddTransactionModal({
                 <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">
                   Categoría
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {aiParsed?.newCategory && (
-                    <button
-                      type="button"
-                      onClick={() => setCategoryId(AI_NEW_CATEGORY)}
-                      className={cn(
-                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
-                        categoryId === AI_NEW_CATEGORY
-                          ? "border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400"
-                          : "border-dashed border-gray-300 dark:border-[#4a4a48] text-gray-500 dark:text-gray-400",
-                      )}
-                    >
-                      <Sparkles size={10} />
-                      {aiParsed.newCategory.icon} {aiParsed.newCategory.name}
-                    </button>
-                  )}
-                  {filtered.length === 0 && !aiParsed?.newCategory ? (
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
-                      Sin categorías de tipo{" "}
-                      {type === "EXPENSE" ? "gasto" : "ingreso"}.{" "}
-                      <Link
-                        to="/categories"
-                        className="text-emerald-600 dark:text-emerald-400 underline"
-                      >
-                        Crea una
-                      </Link>
-                    </p>
-                  ) : (
+                <div>
+                  {categoryId && categoryId !== AI_NEW_CATEGORY ? (
                     <CategoryPicker
                       categories={filtered}
                       selectedId={categoryId}
                       onSelect={setCategoryId}
                     />
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {aiParsed?.newCategory && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCategoryId(
+                              categoryId === AI_NEW_CATEGORY ? "" : AI_NEW_CATEGORY,
+                            )
+                          }
+                          className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
+                            categoryId === AI_NEW_CATEGORY
+                              ? "border-emerald-400 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400"
+                              : "border-dashed border-gray-300 dark:border-[#4a4a48] text-gray-500 dark:text-gray-400",
+                          )}
+                        >
+                          <Sparkles size={10} />
+                          {aiParsed.newCategory.icon}{" "}
+                          {aiParsed.newCategory.name}
+                        </button>
+                      )}
+                      {filtered.length === 0 && !aiParsed?.newCategory ? (
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          Sin categorías de tipo{" "}
+                          {type === "EXPENSE" ? "gasto" : "ingreso"}.{" "}
+                          <Link
+                            to="/categories"
+                            className="text-emerald-600 dark:text-emerald-400 underline"
+                          >
+                            Crea una
+                          </Link>
+                        </p>
+                      ) : (
+                        <CategoryPicker
+                          categories={filtered}
+                          selectedId={categoryId}
+                          onSelect={setCategoryId}
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
