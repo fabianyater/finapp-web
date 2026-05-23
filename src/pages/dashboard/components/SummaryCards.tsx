@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type AccountDto } from "@/api/accounts";
 import { cn } from "@/lib/utils";
 import { fmt } from "../utils/formatters";
@@ -11,6 +11,43 @@ const TABS = [
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
+
+function useCountingNumber(target: number, enabled: boolean) {
+  const [value, setValue] = useState(target);
+  const valueRef = useRef(target);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    let frame = 0;
+    const start = valueRef.current;
+    const delta = target - start;
+    const startTime = performance.now();
+    const duration = 520;
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const next = start + delta * eased;
+      valueRef.current = next;
+      setValue(next);
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(tick);
+      } else {
+        valueRef.current = target;
+        setValue(target);
+      }
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [enabled, target]);
+
+  return enabled ? value : target;
+}
 
 export default function SummaryCards({
   selectedAccount,
@@ -45,16 +82,21 @@ export default function SummaryCards({
     else if (key === "EXPENSE") onSetCategoryView("EXPENSE");
   };
 
+  const selectedTotal =
+    activeTab === "INCOME"
+      ? totalIncome
+      : activeTab === "EXPENSE"
+        ? totalExpense
+        : totalTransfers;
+  const animatedBalance = useCountingNumber(balance, balanceVisible);
+  const animatedSelectedTotal = useCountingNumber(
+    selectedTotal,
+    balanceVisible,
+  );
+
   if (!selectedAccount) return null;
 
-  const hiddenAmount = "••••••";
-  const tabAmounts: Record<TabKey, string> = {
-    INCOME: balanceVisible ? fmt(totalIncome, currency) : hiddenAmount,
-    EXPENSE: balanceVisible ? fmt(totalExpense, currency) : hiddenAmount,
-    TRANSFER: balanceVisible ? fmt(totalTransfers, currency) : hiddenAmount,
-  };
-
-  const activeIndex = TABS.findIndex(({ key }) => key === activeTab);
+  const hiddenAmount = "******";
   const activeColor =
     activeTab === "INCOME"
       ? "emerald"
@@ -62,21 +104,16 @@ export default function SummaryCards({
         ? "rose"
         : "blue";
 
+  const selectedAmount = (() => {
+    if (!balanceVisible) return hiddenAmount;
+    if (activeTab === "INCOME") return `+${fmt(animatedSelectedTotal, currency)}`;
+    if (activeTab === "EXPENSE") return `-${fmt(animatedSelectedTotal, currency)}`;
+    return fmt(animatedSelectedTotal, currency);
+  })();
+
   return (
     <div>
-      <div className="relative grid grid-cols-3 gap-1 rounded-full border border-gray-200 bg-gray-100 p-1 dark:border-[#343432] dark:bg-[#242421]">
-        <div
-          className={cn(
-            "absolute bottom-1 left-1 top-1 w-[calc((100%-0.5rem)/3)] rounded-full shadow-sm transition-all duration-300 ease-out",
-            activeColor === "emerald" ? "bg-emerald-500" : "",
-            activeColor === "rose" ? "bg-rose-500" : "",
-            activeColor === "blue" ? "bg-blue-500" : "",
-          )}
-          style={{
-            transform: `translateX(calc(${activeIndex} * (100% + 0.25rem)))`,
-          }}
-        />
-
+      <div className="grid grid-cols-3 gap-2">
         {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = activeTab === key;
 
@@ -86,10 +123,19 @@ export default function SummaryCards({
               type="button"
               onClick={() => handleSelect(key)}
               className={cn(
-                "relative z-10 flex min-w-0 items-center justify-center gap-1.5 rounded-full px-2.5 py-2 text-[11px] font-semibold transition-colors sm:text-xs",
-                isActive
-                  ? "text-white"
-                  : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200",
+                "flex min-w-0 items-center justify-center gap-1.5 rounded-full border px-2.5 py-2 text-[11px] font-semibold shadow-sm transition-all duration-200 sm:text-xs",
+                isActive && key === "INCOME"
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "",
+                isActive && key === "EXPENSE"
+                  ? "border-rose-500 bg-rose-500 text-white"
+                  : "",
+                isActive && key === "TRANSFER"
+                  ? "border-blue-500 bg-blue-500 text-white"
+                  : "",
+                !isActive
+                  ? "border-gray-200 bg-white/80 text-gray-500 opacity-55 hover:opacity-80 dark:border-[#343432] dark:bg-[#242421] dark:text-gray-400"
+                  : "",
               )}
             >
               <Icon size={14} className="shrink-0" />
@@ -101,7 +147,7 @@ export default function SummaryCards({
 
       <div className="mt-3 px-1">
         <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-          Balance
+          Balance actual
         </p>
         <p
           className={cn(
@@ -111,7 +157,7 @@ export default function SummaryCards({
               : "text-rose-500 dark:text-rose-400",
           )}
         >
-          {balanceVisible ? fmt(balance, currency) : hiddenAmount}
+          {balanceVisible ? fmt(animatedBalance, currency) : hiddenAmount}
         </p>
       </div>
 
@@ -144,7 +190,7 @@ export default function SummaryCards({
               : "text-gray-400 dark:text-gray-500",
           )}
         >
-          {tabAmounts[activeTab]}
+          {selectedAmount}
         </p>
       </div>
     </div>
