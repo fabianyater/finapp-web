@@ -2,8 +2,6 @@ import { type AccountDto } from "@/api/accounts";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function TotalBalanceDisplay({
-  includedAccounts,
-  accounts,
   totalByCurrency,
   balanceVisible,
   onToggleVisible,
@@ -44,13 +42,6 @@ export default function TotalBalanceDisplay({
           </span>
         ))}
       </div>
-      {includedAccounts.length < accounts.length && (
-        <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
-          {accounts.length - includedAccounts.length} cuenta
-          {accounts.length - includedAccounts.length > 1 ? "s" : ""} excluida
-          {accounts.length - includedAccounts.length > 1 ? "s" : ""}
-        </p>
-      )}
     </div>
   );
 }
