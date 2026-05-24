@@ -5,8 +5,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 import {
   Ban,
-  BellRing,
-  CheckCircle2,
   CreditCard,
   Loader2,
   Pencil,
@@ -160,13 +158,13 @@ export default function SubscriptionsPage() {
   const nextSubscription = [...active].sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))[0]
 
   return (
-    <div className="min-h-screen bg-[#f3f6f1] dark:bg-[#111110]">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#111110]">
       <div className="max-w-2xl mx-auto px-4 pt-6 pb-24">
         <div className="flex items-center justify-between mb-5">
           <PageHeader title="Suscripciones" back={false} className="flex items-center gap-2" />
           <button
             onClick={() => setEditor(null)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1a1a18] dark:bg-white text-white dark:text-[#1a1a18] text-sm font-medium hover:opacity-90 transition-opacity"
+            className="flex items-center gap-1.5 rounded-full bg-gray-800 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(32,28,24,0.14)] transition-colors hover:bg-gray-900 dark:bg-white dark:text-[#1a1a18]"
           >
             <Plus size={14} />
             Nueva
@@ -189,11 +187,11 @@ export default function SubscriptionsPage() {
 
         {!isLoading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#1e1e1c] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-white shadow-[0_10px_24px_rgba(32,28,24,0.08)] dark:bg-[#1e1e1c] flex items-center justify-center">
               <CreditCard size={20} className="text-gray-400" />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">No hay suscripciones</p>
-            <button onClick={() => setEditor(null)} className="text-sm text-blue-500 hover:underline">
+            <button onClick={() => setEditor(null)} className="rounded-full px-4 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/20">
               Crear la primera
             </button>
           </div>
@@ -258,26 +256,26 @@ function SubscriptionSummary({
   nextSubscription?: Subscription
 }) {
   return (
-    <div className="mb-6 overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-[#2a2a28] dark:bg-[#1c1c1a]">
+    <div className="mb-6 rounded-3xl border border-white/80 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(32,28,24,0.07),0_1px_0_rgba(255,255,255,0.9)_inset] dark:border-[#2a2a28] dark:bg-[#1c1c1a] dark:shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
       <div className="grid grid-cols-[0.8fr_1.2fr] divide-x divide-gray-100 dark:divide-[#2a2a28]">
         <SummaryCell label="Activas" value={`${activeCount}`} />
-        <SummaryCell label="Proyeccion mensual" value={monthlyTotal} />
+        <SummaryCell label="Mensual estimado" value={monthlyTotal} />
       </div>
       {nextSubscription && (
-        <div className="flex items-center gap-3 border-t border-gray-100 px-4 py-3 dark:border-[#2a2a28]">
-          <SubscriptionBrandMark name={nextSubscription.name} className="h-9 w-9 rounded-lg" />
+        <div className="mt-3 flex items-center gap-3 border-t border-gray-100 pt-3 dark:border-[#2a2a28]">
+          <SubscriptionBrandMark name={nextSubscription.name} className="h-8 w-8 rounded-full" />
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-              Proximo cobro
-            </p>
             <div className="flex min-w-0 items-baseline justify-between gap-3">
               <p className="truncate text-sm font-medium text-gray-800 dark:text-gray-100">
                 {nextSubscription.name}
               </p>
-              <p className="shrink-0 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-300">
-                {formatDate(nextSubscription.nextDueDate)}
+              <p className="shrink-0 text-xs font-semibold tabular-nums text-gray-400 dark:text-gray-500">
+                {dueLabel(nextSubscription.nextDueDate)}
               </p>
             </div>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+              Proximo cobro · {formatDate(nextSubscription.nextDueDate)}
+            </p>
           </div>
         </div>
       )}
@@ -287,9 +285,9 @@ function SubscriptionSummary({
 
 function SummaryCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 px-4 py-3">
+    <div className="min-w-0 px-2 py-1">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">{label}</p>
-      <p className="truncate text-sm font-semibold tabular-nums text-gray-800 dark:text-gray-100">{value}</p>
+      <p className="truncate text-lg font-bold leading-tight tabular-nums text-gray-700 dark:text-gray-100">{value}</p>
     </div>
   )
 }
@@ -321,7 +319,7 @@ function SubscriptionSection({
       <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-1">
         {title} · {items.length}
       </p>
-      <div className={cn('flex flex-col gap-2', dimmed && 'opacity-75')}>
+      <div className={cn('flex flex-col gap-3', dimmed && 'opacity-70')}>
         {items.map((item) => (
           <SubscriptionCard
             key={item.id}
@@ -357,43 +355,53 @@ function SubscriptionCard({
   onDelete: () => void
 }) {
   const dueCopy = item.status === 'CANCELED' ? 'Ultimo vencimiento' : dueLabel(item.nextDueDate)
+  const muted = item.status !== 'ACTIVE'
+  const statusTone = item.status === 'ACTIVE'
+    ? 'text-emerald-600 dark:text-emerald-300'
+    : item.status === 'PAUSED'
+      ? 'text-amber-600 dark:text-amber-300'
+      : 'text-gray-400 dark:text-gray-500'
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-100 bg-white dark:border-[#2a2a28] dark:bg-[#1c1c1a]">
-      <div className="px-4 pb-3 pt-4">
+    <div
+      className={cn(
+        'rounded-3xl border border-white/80 bg-white px-4 py-3.5 shadow-[0_12px_30px_rgba(32,28,24,0.075),0_1px_0_rgba(255,255,255,0.9)_inset] transition-all dark:border-[#292927] dark:bg-[#1c1c1a] dark:shadow-[0_16px_34px_rgba(0,0,0,0.2)]',
+        muted && 'opacity-80',
+      )}
+    >
+      <div>
         <div className="flex items-start justify-between gap-3">
-          <SubscriptionBrandMark name={item.name} />
+          <SubscriptionBrandMark name={item.name} className="h-10 w-10 rounded-full shadow-[0_10px_24px_rgba(32,28,24,0.08)]" />
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex min-w-0 items-center gap-2">
-              <StatusBadge status={item.status} />
+              <span className={cn('text-xs font-semibold', statusTone)}>{STATUS_LABELS[item.status]}</span>
               <span className="truncate text-xs text-gray-400 dark:text-gray-500">
                 {FREQUENCY_LABELS[item.frequency]}{item.autoRenew ? ' · Auto' : ''}
               </span>
             </div>
-            <p className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{item.name}</p>
+            <p className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{item.name}</p>
           </div>
           <div className="shrink-0 text-right">
-            <p className="text-base font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+            <p className="text-base font-semibold tabular-nums text-gray-700 dark:text-gray-100">
               {formatMoney(item.amount, item.currency)}
             </p>
             <p className="text-[11px] text-gray-400 dark:text-gray-500">
-              {item.frequency === 'MONTHLY' ? 'por mes' : FREQUENCY_LABELS[item.frequency].toLowerCase()}
+              {item.frequency === 'MONTHLY' ? 'mensual' : FREQUENCY_LABELS[item.frequency].toLowerCase()}
             </p>
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg bg-gray-50 px-3 py-2.5 dark:bg-[#252523]">
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-gray-100 pt-3 dark:border-[#2a2a28]">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            <p className={cn('text-xs font-semibold tabular-nums', statusTone)}>
               {dueCopy}
             </p>
-            <p className="truncate text-sm font-medium text-gray-700 dark:text-gray-200">
+            <p className="truncate text-xs text-gray-400 dark:text-gray-500">
               {formatDate(item.nextDueDate)}
             </p>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-            <span className="flex items-center gap-1 rounded-md bg-white px-2 py-1 dark:bg-[#1c1c1a]">
-              <BellRing size={11} />
+            <span className="flex items-center gap-1 rounded-full bg-gray-50 px-2 py-1 dark:bg-[#252523]">
               {item.reminderDaysBefore} d
             </span>
           </div>
@@ -407,7 +415,6 @@ function SubscriptionCard({
             <>
               <span>·</span>
               <span className="flex items-center gap-1">
-                <CheckCircle2 size={11} />
                 {formatDate(item.lastPaidDate)}
               </span>
             </>
@@ -415,18 +422,18 @@ function SubscriptionCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t border-gray-100 bg-gray-50/70 px-3 py-2 dark:border-[#2a2a28] dark:bg-[#171715]">
+      <div className="mt-3 flex items-center justify-between gap-2">
         {item.status !== 'CANCELED' ? (
           <button
             title="Registrar pago"
             onClick={onPay}
-            className="flex h-8 min-w-0 items-center gap-1.5 rounded-lg bg-emerald-500 px-2.5 text-xs font-medium text-white transition-colors hover:bg-emerald-600"
+            className="flex h-8 min-w-0 items-center gap-1.5 rounded-full bg-gray-900 px-3 text-xs font-semibold text-white shadow-[0_10px_22px_rgba(32,28,24,0.12)] transition-colors hover:bg-gray-800 dark:bg-white dark:text-[#1a1a18]"
           >
             <ReceiptText size={13} />
-            Pago
+            Registrar pago
           </button>
         ) : (
-          <div />
+          <span className="text-xs font-medium text-gray-400 dark:text-gray-500">{STATUS_LABELS[item.status]}</span>
         )}
         <div className="flex items-center gap-0.5">
           <IconButton title="Editar" onClick={onEdit}>
@@ -455,19 +462,6 @@ function SubscriptionCard({
   )
 }
 
-function StatusBadge({ status }: { status: SubscriptionStatus }) {
-  return (
-    <span className={cn(
-      'rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider',
-      status === 'ACTIVE' && 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-300',
-      status === 'PAUSED' && 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-300',
-      status === 'CANCELED' && 'bg-gray-100 text-gray-500 dark:bg-[#252523] dark:text-gray-400',
-    )}>
-      {STATUS_LABELS[status]}
-    </span>
-  )
-}
-
 function IconButton({
   children,
   className,
@@ -477,7 +471,7 @@ function IconButton({
     <button
       {...props}
       className={cn(
-        'w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors',
+        'w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-[#252523] transition-colors',
         className,
       )}
     >
@@ -551,7 +545,7 @@ function SubscriptionSheet({
       >
         <Field label="Nombre" error={errors.name?.message}>
           <div className="flex items-center gap-2">
-            <SubscriptionBrandMark name={name ?? ''} className="h-10 w-10 rounded-lg" />
+            <SubscriptionBrandMark name={name ?? ''} className="h-10 w-10 rounded-full shadow-[0_10px_24px_rgba(32,28,24,0.08)]" />
             <input {...register('name')} placeholder="Netflix" className={inputClass} />
           </div>
         </Field>
@@ -596,7 +590,7 @@ function SubscriptionSheet({
                     type="button"
                     onClick={() => field.onChange(frequency)}
                     className={cn(
-                      'py-2 rounded-xl text-xs font-medium border transition-colors',
+                      'py-2 rounded-full text-xs font-medium border transition-colors',
                       field.value === frequency
                         ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'
                         : 'border-gray-200 dark:border-[#2a2a28] text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#252523]',
@@ -617,14 +611,14 @@ function SubscriptionSheet({
             <input type="number" min={0} {...register('reminderDaysBefore')} className={inputClass} />
           </Field>
         </div>
-        <label className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 dark:border-[#2a2a28] px-3 py-2.5">
+        <label className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200 dark:border-[#2a2a28] px-3 py-2.5">
           <span className="text-sm text-gray-700 dark:text-gray-200">Renovacion automatica</span>
           <input type="checkbox" {...register('autoRenew')} className="h-4 w-4 accent-emerald-500" />
         </label>
         <button
           type="submit"
           disabled={pending}
-          className="mt-1 w-full py-2.5 rounded-xl bg-[#1a1a18] dark:bg-white text-white dark:text-[#1a1a18] text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+          className="mt-1 w-full py-2.5 rounded-full bg-[#1a1a18] dark:bg-white text-white dark:text-[#1a1a18] text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {pending && <Loader2 size={14} className="animate-spin" />}
           {isEdit ? 'Guardar cambios' : 'Crear'}
@@ -663,7 +657,7 @@ function PaymentSheet({ item, onClose }: { item: Subscription; onClose: () => vo
   return (
     <SheetFrame title="Registrar pago" onClose={onClose}>
       <div className="flex items-center gap-3 p-5 border-b border-gray-100 dark:border-[#2a2a28]">
-        <SubscriptionBrandMark name={item.name} />
+        <SubscriptionBrandMark name={item.name} className="h-10 w-10 rounded-full shadow-[0_10px_24px_rgba(32,28,24,0.08)]" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{item.name}</p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
@@ -681,7 +675,7 @@ function PaymentSheet({ item, onClose }: { item: Subscription; onClose: () => vo
         <button
           type="submit"
           disabled={mutation.isPending}
-          className="w-full py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-medium flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-50"
+          className="w-full py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50 dark:bg-white dark:text-[#1a1a18]"
         >
           {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
           Crear gasto
@@ -705,7 +699,7 @@ function PaymentHistory({ payments, isLoading }: { payments: SubscriptionPayment
       ) : (
         <div className="flex flex-col gap-2">
           {payments.map((payment) => (
-            <div key={payment.id} className="rounded-xl bg-gray-50 dark:bg-[#252523] px-3 py-2.5">
+            <div key={payment.id} className="rounded-2xl bg-gray-50 dark:bg-[#252523] px-3 py-2.5">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                   {formatMoney(payment.amount, payment.currency)}
@@ -735,7 +729,7 @@ function SheetFrame({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white dark:bg-[#1c1c1a] shadow-xl flex flex-col overflow-y-auto">
+      <div className="relative flex w-full max-w-md flex-col overflow-y-auto bg-white shadow-[0_28px_80px_rgba(32,28,24,0.22)] dark:bg-[#1c1c1a] dark:shadow-2xl sm:m-3 sm:rounded-3xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#2a2a28]">
           <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
           <IconButton title="Cerrar" onClick={onClose}>
@@ -767,4 +761,4 @@ function Field({
 }
 
 const inputClass =
-  'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30'
+  'w-full px-3 py-2.5 rounded-2xl border border-gray-200 dark:border-[#2a2a28] bg-white dark:bg-[#252523] text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30'
