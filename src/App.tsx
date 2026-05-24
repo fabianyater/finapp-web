@@ -12,6 +12,7 @@ import VerifyEmailPage from "@/pages/auth/VerifyEmailPage";
 import BudgetsPage from "@/pages/budgets/BudgetsPage";
 import CategoriesPage from "@/pages/categories/CategoriesPage";
 import DashboardPage from "@/pages/dashboard/DashboardPage";
+import DebtsPage from "@/pages/debts/DebtsPage";
 import OnboardingPage from "@/pages/onboarding/OnboardingPage";
 import ProfilePage from "@/pages/profile/ProfilePage";
 import RecurringTransactionsPage from "@/pages/recurring/RecurringTransactionsPage";
@@ -46,6 +47,7 @@ export default function App() {
                 element={<RecurringTransactionsPage />}
               />
               <Route path="/budgets" element={<BudgetsPage />} />
+              <Route path="/debts" element={<DebtsPage />} />
               <Route path="/subscriptions" element={<SubscriptionsPage />} />
               <Route path="/tags" element={<TagsPage />} />
               <Route path="/settings" element={<SettingsPage />} />

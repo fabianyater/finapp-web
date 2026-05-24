@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronRight,
   Download,
+  HandCoins,
   Hash,
   Loader2,
   Monitor,
@@ -509,6 +510,12 @@ export default function SettingsPage() {
                   icon: PiggyBank,
                   label: "Presupuestos",
                   sub: "Límites mensuales por categoría",
+                },
+                {
+                  to: "/debts",
+                  icon: HandCoins,
+                  label: "Deudas",
+                  sub: "Prestamos, cobros y pagos pendientes",
                 },
               ].map(({ to, icon: Icon, label, sub }) => (
                 <Link

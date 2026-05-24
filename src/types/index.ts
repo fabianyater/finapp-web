@@ -237,6 +237,57 @@ export interface RecordSubscriptionPaymentRequest {
   note?: string
 }
 
+// Debt
+export type DebtDirection = 'I_OWE' | 'OWED_TO_ME'
+export type DebtStatus = 'OPEN' | 'PAID' | 'CANCELED'
+
+export interface Debt {
+  id: string
+  direction: DebtDirection
+  counterparty: string
+  description: string
+  note: string | null
+  originalAmount: number
+  outstandingAmount: number
+  currency: string
+  accountId: string | null
+  initialTransactionId: string | null
+  dueDate: string | null
+  status: DebtStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DebtRequest {
+  direction: DebtDirection
+  counterparty: string
+  description: string
+  note?: string
+  amount: number
+  currency?: string
+  accountId?: string
+  dueDate?: string
+}
+
+export interface DebtPayment {
+  id: string
+  debtId: string
+  accountId: string | null
+  transactionId: string | null
+  amount: number
+  currency: string
+  paidOn: string
+  note: string | null
+  createdAt: string
+}
+
+export interface DebtPaymentRequest {
+  amount: number
+  accountId?: string
+  paidOn?: string
+  note?: string
+}
+
 // Notification
 export interface NotificationItem {
   id: string
