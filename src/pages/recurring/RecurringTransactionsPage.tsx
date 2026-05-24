@@ -4,18 +4,13 @@ import { Controller, type Resolver, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  ArrowDownLeft,
-  ArrowLeftRight,
-  ArrowUpRight,
   CalendarClock,
   Loader2,
   Pencil,
   Plus,
   Power,
   RepeatIcon,
-  Tag,
   Trash2,
-  Wallet,
   X,
 } from "lucide-react";
 import { accountsApi } from "@/api/accounts";
@@ -27,12 +22,7 @@ import { getApiErrorMessage } from "@/lib/apiErrors";
 import { cn } from "@/lib/utils";
 import { toast } from "@/store/toast";
 import type { RecurringFrequency, RecurringTransaction } from "@/types";
-import {
-  iconBg,
-  iconGlow,
-  resolveColor,
-  resolveIcon,
-} from "@/pages/dashboard/utils/colorUtils";
+import { resolveColor } from "@/pages/dashboard/utils/colorUtils";
 
 const FREQUENCY_LABELS: Record<RecurringFrequency, string> = {
   DAILY: "Diario",
@@ -96,7 +86,6 @@ function dueLabel(iso: string) {
 function typeMeta(type: RecurringTransaction["type"]) {
   if (type === "INCOME") {
     return {
-      Icon: ArrowDownLeft,
       amountPrefix: "+",
       color: "#328758",
       label: TYPE_LABELS.INCOME,
@@ -104,14 +93,12 @@ function typeMeta(type: RecurringTransaction["type"]) {
   }
   if (type === "TRANSFER") {
     return {
-      Icon: ArrowLeftRight,
       amountPrefix: "",
       color: "#36778d",
       label: TYPE_LABELS.TRANSFER,
     };
   }
   return {
-    Icon: ArrowUpRight,
     amountPrefix: "-",
     color: "#a94e42",
     label: TYPE_LABELS.EXPENSE,
@@ -180,7 +167,7 @@ export default function RecurringTransactionsPage() {
           />
           <button
             onClick={() => setSheet({ open: true, item: null })}
-            className="flex items-center gap-1.5 rounded-full bg-emerald-700 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(29,86,56,0.24)] transition-all hover:-translate-y-0.5 hover:bg-emerald-800 dark:bg-white dark:text-[#1a1a18]"
+            className="flex items-center gap-1.5 rounded-full bg-gray-800 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(32,28,24,0.14)] transition-colors hover:bg-gray-900 dark:bg-white dark:text-[#1a1a18]"
           >
             <Plus size={14} />
             Nueva
@@ -195,7 +182,7 @@ export default function RecurringTransactionsPage() {
 
         {!isLoading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_16px_36px_rgba(32,28,24,0.1),0_1px_0_rgba(255,255,255,0.9)_inset] dark:bg-[#1e1e1c]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_10px_24px_rgba(32,28,24,0.08)] dark:bg-[#1e1e1c]">
               <RepeatIcon size={20} className="text-gray-400" />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -279,47 +266,34 @@ function RecurringCard({
   onDelete: () => void;
 }) {
   const meta = typeMeta(item.type);
-  const Icon = meta.Icon;
   const accent =
     item.type === "TRANSFER" ? meta.color : resolveColor(category?.color, meta.color);
   const isOverdue = daysUntil(item.nextDueDate) < 0;
+  const secondaryLabel = [
+    FREQUENCY_LABELS[item.frequency],
+    accountLabel,
+    category?.name,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-white/80 bg-white p-4 shadow-[0_18px_42px_rgba(32,28,24,0.1),0_1px_0_rgba(255,255,255,0.9)_inset] dark:border-[#2a2a28] dark:bg-[#1c1c1a] dark:shadow-[0_18px_42px_rgba(0,0,0,0.24)]">
+    <div className="rounded-3xl border border-white/80 bg-white px-4 py-3.5 shadow-[0_10px_28px_rgba(32,28,24,0.07),0_1px_0_rgba(255,255,255,0.9)_inset] dark:border-[#2a2a28] dark:bg-[#1c1c1a] dark:shadow-[0_12px_30px_rgba(0,0,0,0.2)]">
       <div className="flex items-start gap-3">
-        <div
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl leading-none"
-          style={{
-            backgroundColor: iconBg(accent),
-            boxShadow: iconGlow(accent),
-            color: accent,
-          }}
-        >
-          {item.type === "TRANSFER" ? <Icon size={19} /> : resolveIcon(category?.icon)}
-        </div>
-
+        <span
+          className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+          style={{ backgroundColor: accent }}
+        />
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">
                 {item.description}
               </p>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                <span
-                  className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                  style={{ backgroundColor: iconBg(accent), color: accent }}
-                >
-                  {meta.label}
-                </span>
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500 dark:bg-[#252523] dark:text-gray-400">
-                  {FREQUENCY_LABELS[item.frequency]}
-                </span>
-                {!item.active && (
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-400 dark:bg-[#252523]">
-                    Pausada
-                  </span>
-                )}
-              </div>
+              <p className="mt-1 truncate text-xs text-gray-400 dark:text-gray-500">
+                {meta.label} · {secondaryLabel}
+                {!item.active ? " · Pausada" : ""}
+              </p>
             </div>
 
             <div className="shrink-0 text-right">
@@ -340,17 +314,12 @@ function RecurringCard({
             </div>
           </div>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-            <InfoPill icon={Wallet} label={accountLabel} />
-            {category ? (
-              <InfoPill icon={Tag} label={category.name} />
-            ) : (
-              <InfoPill icon={Tag} label="Sin categoria" muted />
-            )}
-            <InfoPill icon={CalendarClock} label={fmtDate(item.nextDueDate)} />
-          </div>
-
-          <div className="mt-4 flex items-center justify-end gap-1">
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span className="flex min-w-0 items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+              <CalendarClock size={12} className="shrink-0" />
+              <span className="truncate">{fmtDate(item.nextDueDate)}</span>
+            </span>
+            <div className="flex shrink-0 items-center gap-0.5">
             <button
               onClick={onToggle}
               title={item.active ? "Pausar" : "Activar"}
@@ -375,34 +344,11 @@ function RecurringCard({
             >
               <Trash2 size={14} />
             </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function InfoPill({
-  icon: Icon,
-  label,
-  muted,
-}: {
-  icon: typeof Wallet;
-  label: string;
-  muted?: boolean;
-}) {
-  return (
-    <span
-      className={cn(
-        "flex min-w-0 items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-medium dark:bg-[#252523]",
-        muted
-          ? "text-gray-400 dark:text-gray-500"
-          : "text-gray-500 dark:text-gray-300",
-      )}
-    >
-      <Icon size={12} className="shrink-0 text-gray-400 dark:text-gray-500" />
-      <span className="truncate">{label}</span>
-    </span>
   );
 }
 
