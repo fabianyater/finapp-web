@@ -2,7 +2,9 @@ import { accountsApi, type AccountDto, type MemberDto } from "@/api/accounts";
 import { MoneyInput } from "@/components/MoneyInput";
 import PageHeader from "@/components/PageHeader";
 import { getApiErrorMessage } from "@/lib/apiErrors";
+import { isDemoAccount } from "@/lib/demoAccount";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
 import { toast } from "@/store/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -503,9 +505,11 @@ function AccountSheet({
 function MembersSheet({
   account,
   onClose,
+  isDemo,
 }: {
   account: AccountDto;
   onClose: () => void;
+  isDemo: boolean;
 }) {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
@@ -584,14 +588,15 @@ function MembersSheet({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) =>
-                  e.key === "Enter" && email && inviteMutation.mutate(email)
+                  e.key === "Enter" && email && !isDemo && inviteMutation.mutate(email)
                 }
+                disabled={isDemo}
                 placeholder="correo@ejemplo.com"
                 className="flex-1 bg-white dark:bg-[#252523] border border-gray-200 dark:border-[#3a3a38] rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
               />
               <button
                 onClick={() => email && inviteMutation.mutate(email)}
-                disabled={!email || inviteMutation.isPending}
+                disabled={!email || inviteMutation.isPending || isDemo}
                 className="px-3 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-40 transition-colors flex items-center gap-1.5 text-sm font-medium"
               >
                 {inviteMutation.isPending ? (
@@ -602,6 +607,11 @@ function MembersSheet({
                 Invitar
               </button>
             </div>
+            {isDemo && (
+              <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+                Las invitaciones estan deshabilitadas para el usuario demo.
+              </p>
+            )}
           </div>
 
           {/* list */}
@@ -650,7 +660,7 @@ function MembersSheet({
                         {m.email}
                       </p>
                     </div>
-                    {!m.owner && (
+                    {!m.owner && !isDemo && (
                       <button
                         onClick={() => removeMutation.mutate(m.userId)}
                         disabled={removeMutation.isPending}
@@ -679,12 +689,14 @@ function AccountCard({
   onArchive,
   onDelete,
   onMembers,
+  isDemo,
 }: {
   account: AccountDto;
   onEdit: () => void;
   onArchive: () => void;
   onDelete: () => void;
   onMembers: () => void;
+  isDemo: boolean;
 }) {
   const color = account.color
     ? account.color.startsWith("#")
@@ -779,7 +791,8 @@ function AccountCard({
           </button>
           <button
             onClick={onEdit}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-[#252523] dark:hover:text-gray-200"
+            disabled={isDemo}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-35 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title="Editar"
             aria-label={`Editar ${account.name}`}
           >
@@ -787,7 +800,8 @@ function AccountCard({
           </button>
           <button
             onClick={onArchive}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-[#252523] dark:hover:text-gray-200"
+            disabled={isDemo}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-35 dark:hover:bg-[#252523] dark:hover:text-gray-200"
             title={account.isArchived ? "Desarchivar" : "Archivar"}
             aria-label={`${account.isArchived ? "Desarchivar" : "Archivar"} ${account.name}`}
           >
@@ -799,7 +813,8 @@ function AccountCard({
           </button>
           <button
             onClick={onDelete}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/20"
+            disabled={isDemo}
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-rose-50 hover:text-rose-500 disabled:cursor-not-allowed disabled:opacity-35 dark:hover:bg-rose-950/20"
             title="Eliminar"
             aria-label={`Eliminar ${account.name}`}
           >
@@ -859,6 +874,8 @@ function AccountAccessSummary({ members }: { members?: MemberDto[] }) {
 
 export default function AccountsPage() {
   const queryClient = useQueryClient();
+  const authUser = useAuthStore((s) => s.user);
+  const isDemo = isDemoAccount(authUser?.email);
   const [sheet, setSheet] = useState<"create" | AccountDto | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AccountDto | null>(null);
   const [membersTarget, setMembersTarget] = useState<AccountDto | null>(null);
@@ -1023,6 +1040,7 @@ export default function AccountsPage() {
                   <AccountCard
                     key={a.id}
                     account={a}
+                    isDemo={isDemo}
                     onEdit={() => setSheet(a)}
                     onArchive={() =>
                       archiveMutation.mutate({
@@ -1049,6 +1067,7 @@ export default function AccountsPage() {
                   <AccountCard
                     key={a.id}
                     account={a}
+                    isDemo={isDemo}
                     onEdit={() => setSheet(a)}
                     onArchive={() =>
                       archiveMutation.mutate({
@@ -1080,6 +1099,7 @@ export default function AccountsPage() {
         <MembersSheet
           account={membersTarget}
           onClose={() => setMembersTarget(null)}
+          isDemo={isDemo}
         />
       )}
 

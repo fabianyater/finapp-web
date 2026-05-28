@@ -3,6 +3,7 @@ import { transactionsApi } from "@/api/transactions";
 import { usersApi } from "@/api/users";
 import PageHeader from "@/components/PageHeader";
 import { getApiErrorMessage } from "@/lib/apiErrors";
+import { isDemoAccount } from "@/lib/demoAccount";
 import { cn } from "@/lib/utils";
 import { useThemeStore, type ThemeMode } from "@/store/theme";
 import { toast } from "@/store/toast";
@@ -385,6 +386,7 @@ export default function SettingsPage() {
     queryKey: ["user", "me"],
     queryFn: usersApi.getMe,
   });
+  const isDemo = isDemoAccount(profile?.email);
   const { data: accountsData, isLoading: accountsLoading } = useQuery({
     queryKey: ["accounts"],
     queryFn: accountsApi.list,
@@ -425,7 +427,9 @@ export default function SettingsPage() {
 
   const handleThemeChange = (mode: ThemeMode) => {
     setTheme(mode);
-    themeMutation.mutate(mode);
+    if (!isDemo) {
+      themeMutation.mutate(mode);
+    }
   };
 
   // ── Shared styles ─────────────────────────────────────────────────────
@@ -575,7 +579,7 @@ export default function SettingsPage() {
                   <div className="h-11 bg-gray-100 dark:bg-[#252523] rounded-lg animate-pulse" />
                 ) : (
                   <SelectWrapper>
-                    <select {...regPrefs("currency")} className={selectCls}>
+                    <select {...regPrefs("currency")} disabled={isDemo} className={selectCls}>
                       {CURRENCIES.map((c) => (
                         <option key={c.value} value={c.value}>
                           {c.label}
@@ -594,7 +598,7 @@ export default function SettingsPage() {
                     <div className="h-11 bg-gray-100 dark:bg-[#252523] rounded-lg animate-pulse" />
                   ) : (
                     <SelectWrapper>
-                      <select {...regPrefs("dateFormat")} className={selectCls}>
+                      <select {...regPrefs("dateFormat")} disabled={isDemo} className={selectCls}>
                         {DATE_FORMATS.map((f) => (
                           <option key={f.value} value={f.value}>
                             {f.label}
@@ -612,7 +616,7 @@ export default function SettingsPage() {
                     <div className="h-11 bg-gray-100 dark:bg-[#252523] rounded-lg animate-pulse" />
                   ) : (
                     <SelectWrapper>
-                      <select {...regPrefs("language")} className={selectCls}>
+                      <select {...regPrefs("language")} disabled={isDemo} className={selectCls}>
                         {LANGUAGES.map((l) => (
                           <option key={l.value} value={l.value}>
                             {l.label}
@@ -625,10 +629,16 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {isDemo && (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+                  Las preferencias guardadas estan bloqueadas para mantener estable la demo publica.
+                </p>
+              )}
+
               <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  disabled={prefsMutation.isPending || isLoading}
+                  disabled={prefsMutation.isPending || isLoading || isDemo}
                   className={saveBtnCls}
                 >
                   {prefsMutation.isPending ? (

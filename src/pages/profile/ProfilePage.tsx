@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from '@/store/toast'
 import { usersApi } from '@/api/users'
 import { getApiErrorMessage } from '@/lib/apiErrors'
+import { isDemoAccount } from '@/lib/demoAccount'
 import { useAuthStore } from '@/store/auth'
 import { Loader2, Trash2 } from 'lucide-react'
 import PageHeader from '@/components/PageHeader'
@@ -45,6 +46,7 @@ export default function ProfilePage() {
     queryKey: ['user', 'me'],
     queryFn: usersApi.getMe,
   })
+  const isDemo = isDemoAccount(profile?.email)
 
   const {
     register,
@@ -85,6 +87,9 @@ export default function ProfilePage() {
   const inputCls =
     'w-full bg-white dark:bg-[#252523] border border-gray-200 dark:border-[#3a3a38] rounded-lg px-4 py-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-colors'
 
+  const disabledInputCls =
+    'w-full bg-gray-50 dark:bg-[#1a1a18] border border-gray-200 dark:border-[#2a2a28] rounded-lg px-4 py-3 text-sm text-gray-400 dark:text-gray-500 cursor-not-allowed'
+
   const cardCls =
     'bg-white dark:bg-[#1a1a18] border border-gray-200 dark:border-[#2a2a28] rounded-xl overflow-hidden'
 
@@ -117,7 +122,7 @@ export default function ProfilePage() {
                 {isLoading ? (
                   <div className="h-11 bg-gray-100 dark:bg-[#252523] rounded-lg animate-pulse" />
                 ) : (
-                  <input {...register('name')} placeholder="Juan" className={inputCls} />
+                  <input {...register('name')} placeholder="Juan" disabled={isDemo} className={isDemo ? disabledInputCls : inputCls} />
                 )}
                 <FieldError message={errors.name?.message} />
               </div>
@@ -126,7 +131,7 @@ export default function ProfilePage() {
                 {isLoading ? (
                   <div className="h-11 bg-gray-100 dark:bg-[#252523] rounded-lg animate-pulse" />
                 ) : (
-                  <input {...register('surname')} placeholder="Pérez" className={inputCls} />
+                  <input {...register('surname')} placeholder="Pérez" disabled={isDemo} className={isDemo ? disabledInputCls : inputCls} />
                 )}
                 <FieldError message={errors.surname?.message} />
               </div>
@@ -145,14 +150,20 @@ export default function ProfilePage() {
                 />
               )}
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-                El email no puede modificarse
+                {isDemo ? 'La identidad del usuario demo esta protegida' : 'El email no puede modificarse'}
               </p>
             </div>
+
+            {isDemo && (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
+                Este perfil pertenece a la demo publica. Puedes probar las funciones financieras, pero no cambiar la identidad del usuario.
+              </p>
+            )}
 
             <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                disabled={profileMutation.isPending || isLoading}
+                disabled={profileMutation.isPending || isLoading || isDemo}
                 className={saveBtnCls}
               >
                 {profileMutation.isPending ? (
@@ -187,6 +198,7 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Eliminar cuenta ───────────────────────────── */}
+        {!isDemo && (
         <div className="bg-white dark:bg-[#1a1a18] border border-rose-200 dark:border-rose-900/50 rounded-xl overflow-hidden">
           <div className="px-6 py-5">
             {!showDeleteConfirm ? (
@@ -232,6 +244,7 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+        )}
 
       </div>
     </div>
